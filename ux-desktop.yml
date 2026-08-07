@@ -1,0 +1,343 @@
+- generic [active] [ref=e1] [box=0,0,1440,900]:
+  - generic [ref=e2] [box=0,0,1440,900]:
+    - banner [ref=e3] [box=20,12,1400,88]:
+      - generic [ref=e4] [box=20,12,1400,32]:
+        - heading "Retirement scenarios" [level=1] [ref=e6] [box=20,12,151,24]
+        - generic [ref=e7] [box=195,16,1225,18]:
+          - generic [ref=e8] [box=1107,16,64,18]: Retire now
+          - generic [ref=e9] [box=1187,16,233,18]: Blended return 7.8% · inflation 3.0% · FL
+    - generic [ref=e10] [box=20,112,1400,772]:
+      - generic [ref=e11] [box=798,112,622,82]:
+        - paragraph [ref=e12] [box=830,112,590,18]: Funds run out
+        - paragraph [ref=e13] [box=830,134,590,32]: Age 93
+        - paragraph [ref=e14] [box=830,174,590,20]: Start $1.54M · avg portfolio draw $117k/yr
+      - generic [ref=e15] [box=20,112,777,772]:
+        - generic [ref=e16] [box=20,112,745,372]:
+          - generic [ref=e17] [box=20,112,72,62]:
+            - generic [ref=e18] [box=20,112,72,16]: Age now
+            - spinbutton "Age now" [ref=e19] [box=20,136,72,38]: "58"
+          - generic [ref=e20] [box=20,190,72,62]:
+            - generic [ref=e21] [box=20,190,72,16]: To age
+            - spinbutton "To age" [ref=e22] [box=20,214,72,38]: "95"
+          - generic [ref=e23] [box=20,267,88,62]:
+            - generic [ref=e24] [box=20,267,88,16]: Inflation
+            - generic [ref=e25] [box=20,291,88,38]:
+              - spinbutton "Inflation" [ref=e26] [box=21,292,63,36]: "3"
+              - generic [ref=e27] [box=84,300,23,20]: "%"
+          - generic [ref=e28] [box=20,345,176,62]:
+            - generic [ref=e29] [box=20,345,176,16]: Spending
+            - combobox "Spending" [ref=e30] [box=20,369,176,38]:
+              - option "Fixed $/yr" [selected] [box=0,0,0,0]
+              - option "% of start" [box=0,0,0,0]
+          - generic [ref=e31] [box=20,423,95,62]:
+            - generic [ref=e32] [box=20,423,95,16]: Lifestyle $/yr
+            - generic [ref=e33] [box=20,447,95,38]:
+              - generic [ref=e34] [box=21,456,21,20]: $
+              - spinbutton "Lifestyle $/yr" [ref=e35] [box=42,448,72,36]: "90000"
+        - generic [ref=e36] [box=20,496,745,341]:
+          - generic [ref=e37] [box=20,496,745,36]:
+            - paragraph [ref=e38] [box=20,498,41,16]: Wealth
+            - generic [ref=e39] [box=338,496,427,36]:
+              - button "+ Taxable" [ref=e40] [cursor=pointer] [box=338,496,96,36]
+              - button "+ Roth" [ref=e41] [cursor=pointer] [box=442,496,76,36]
+              - button "+ Trad" [ref=e42] [cursor=pointer] [box=526,496,74,36]
+              - button "+ 401k" [ref=e43] [cursor=pointer] [box=608,496,77,36]
+              - button "+ 529" [ref=e44] [cursor=pointer] [box=694,496,71,36]
+          - group [ref=e45] [box=20,548,745,51]:
+            - generic "? How wealth works" [ref=e46] [cursor=pointer] [box=20,565,745,18]
+          - generic [ref=e47] [box=20,615,745,222]:
+            - generic [ref=e48] [box=20,615,745,38]:
+              - combobox "Type" [ref=e49] [box=20,615,72,38]:
+                - option "529" [box=0,0,0,0]
+                - option "Taxable" [selected] [box=0,0,0,0]
+                - option "Roth" [box=0,0,0,0]
+                - option "Traditional" [box=0,0,0,0]
+                - option "401(k)" [box=0,0,0,0]
+              - textbox "Name" [ref=e50] [box=128,616,138,38]: Brokerage
+              - generic [ref=e51] [box=274,616,104,38]:
+                - generic [ref=e52] [box=275,624,21,20]: $
+                - spinbutton "Balance" [ref=e53] [box=296,617,81,36]: "400000"
+              - combobox "Fund" [ref=e54] [box=386,615,128,38]:
+                - option "Cash / T-bills (3.5%)" [box=0,0,0,0]
+                - option "60/40 (5.5%)" [box=0,0,0,0]
+                - option "80/20 (7%)" [selected] [box=0,0,0,0]
+                - option "Heavy equity (8.5%)" [box=0,0,0,0]
+                - option "S&P 500-ish (10%)" [box=0,0,0,0]
+                - option "Custom rate" [box=0,0,0,0]
+              - generic [ref=e55] [box=522,625,68,18]: 7.0%
+              - generic [ref=e56] [box=598,625,118,18]: —
+              - button "×" [ref=e57] [cursor=pointer] [box=724,616,41,36]
+            - generic [ref=e58] [box=20,661,745,38]:
+              - combobox "Type" [ref=e59] [box=20,661,72,38]:
+                - option "529" [box=0,0,0,0]
+                - option "Taxable" [box=0,0,0,0]
+                - option "Roth" [selected] [box=0,0,0,0]
+                - option "Traditional" [box=0,0,0,0]
+                - option "401(k)" [box=0,0,0,0]
+              - textbox "Name" [ref=e60] [box=128,662,138,38]: Roth IRA
+              - generic [ref=e61] [box=274,662,104,38]:
+                - generic [ref=e62] [box=275,670,21,20]: $
+                - spinbutton "Balance" [ref=e63] [box=296,663,81,36]: "350000"
+              - combobox "Fund" [ref=e64] [box=386,661,128,38]:
+                - option "Cash / T-bills (3.5%)" [box=0,0,0,0]
+                - option "60/40 (5.5%)" [box=0,0,0,0]
+                - option "80/20 (7%)" [box=0,0,0,0]
+                - option "Heavy equity (8.5%)" [box=0,0,0,0]
+                - option "S&P 500-ish (10%)" [selected] [box=0,0,0,0]
+                - option "Custom rate" [box=0,0,0,0]
+              - generic [ref=e65] [box=522,671,68,18]: 10.0%
+              - generic [ref=e66] [box=598,671,118,18]: —
+              - button "×" [ref=e67] [cursor=pointer] [box=724,662,41,36]
+            - generic [ref=e68] [box=20,707,745,38]:
+              - combobox "Type" [ref=e69] [box=20,707,72,38]:
+                - option "529" [box=0,0,0,0]
+                - option "Taxable" [box=0,0,0,0]
+                - option "Roth" [box=0,0,0,0]
+                - option "Traditional" [selected] [box=0,0,0,0]
+                - option "401(k)" [box=0,0,0,0]
+              - textbox "Name" [ref=e70] [box=128,708,138,38]: Traditional IRA
+              - generic [ref=e71] [box=274,708,104,38]:
+                - generic [ref=e72] [box=275,716,21,20]: $
+                - spinbutton "Balance" [ref=e73] [box=296,709,81,36]: "650000"
+              - combobox "Fund" [ref=e74] [box=386,707,128,38]:
+                - option "Cash / T-bills (3.5%)" [box=0,0,0,0]
+                - option "60/40 (5.5%)" [box=0,0,0,0]
+                - option "80/20 (7%)" [selected] [box=0,0,0,0]
+                - option "Heavy equity (8.5%)" [box=0,0,0,0]
+                - option "S&P 500-ish (10%)" [box=0,0,0,0]
+                - option "Custom rate" [box=0,0,0,0]
+              - generic [ref=e75] [box=522,717,68,18]: 7.0%
+              - generic [ref=e76] [box=598,717,118,18]: —
+              - button "×" [ref=e77] [cursor=pointer] [box=724,708,41,36]
+            - generic [ref=e78] [box=20,753,745,38]:
+              - combobox "Type" [ref=e79] [box=20,753,72,38]:
+                - option "529" [selected] [box=0,0,0,0]
+                - option "Taxable" [box=0,0,0,0]
+                - option "Roth" [box=0,0,0,0]
+                - option "Traditional" [box=0,0,0,0]
+                - option "401(k)" [box=0,0,0,0]
+              - textbox "Name" [ref=e80] [box=128,754,138,38]: Kid 1 529
+              - generic [ref=e81] [box=274,754,104,38]:
+                - generic [ref=e82] [box=275,762,21,20]: $
+                - spinbutton "Balance" [ref=e83] [box=296,755,81,36]: "80000"
+              - combobox "Fund" [ref=e84] [box=386,753,128,38]:
+                - option "Cash / T-bills (3.5%)" [box=0,0,0,0]
+                - option "60/40 (5.5%)" [box=0,0,0,0]
+                - option "80/20 (7%)" [box=0,0,0,0]
+                - option "Heavy equity (8.5%)" [selected] [box=0,0,0,0]
+                - option "S&P 500-ish (10%)" [box=0,0,0,0]
+                - option "Custom rate" [box=0,0,0,0]
+              - generic [ref=e85] [box=522,763,68,18]: 8.5%
+              - combobox "Pays for college" [ref=e86] [box=598,753,118,38]:
+                - option "No college link" [box=0,0,0,0]
+                - option "Pays Kid 1 college" [selected] [box=0,0,0,0]
+                - option "Pays Kid 2 college" [box=0,0,0,0]
+              - button "×" [ref=e87] [cursor=pointer] [box=724,754,41,36]
+            - generic [ref=e88] [box=20,799,745,38]:
+              - combobox "Type" [ref=e89] [box=20,799,72,38]:
+                - option "529" [selected] [box=0,0,0,0]
+                - option "Taxable" [box=0,0,0,0]
+                - option "Roth" [box=0,0,0,0]
+                - option "Traditional" [box=0,0,0,0]
+                - option "401(k)" [box=0,0,0,0]
+              - textbox "Name" [ref=e90] [box=128,800,138,38]: Kid 2 529
+              - generic [ref=e91] [box=274,800,104,38]:
+                - generic [ref=e92] [box=275,808,21,20]: $
+                - spinbutton "Balance" [ref=e93] [box=296,801,81,36]: "60000"
+              - combobox "Fund" [ref=e94] [box=386,799,128,38]:
+                - option "Cash / T-bills (3.5%)" [box=0,0,0,0]
+                - option "60/40 (5.5%)" [box=0,0,0,0]
+                - option "80/20 (7%)" [box=0,0,0,0]
+                - option "Heavy equity (8.5%)" [selected] [box=0,0,0,0]
+                - option "S&P 500-ish (10%)" [box=0,0,0,0]
+                - option "Custom rate" [box=0,0,0,0]
+              - generic [ref=e95] [box=522,809,68,18]: 8.5%
+              - combobox "Pays for college" [ref=e96] [box=598,799,118,38]:
+                - option "No college link" [box=0,0,0,0]
+                - option "Pays Kid 1 college" [box=0,0,0,0]
+                - option "Pays Kid 2 college" [selected] [box=0,0,0,0]
+              - button "×" [ref=e97] [cursor=pointer] [box=724,800,41,36]
+        - generic [ref=e98] [box=20,849,745,181]:
+          - generic [ref=e99] [box=20,849,745,36]:
+            - paragraph [ref=e100] [box=20,851,103,16]: Income over time
+            - button "Add income" [ref=e101] [cursor=pointer] [box=654,849,112,36]
+          - group [ref=e102] [box=20,901,745,51]:
+            - generic "? What counts as income" [ref=e103] [cursor=pointer] [box=20,918,745,18]
+          - generic [ref=e105] [box=20,968,745,62]:
+            - textbox "Income name" [ref=e106] [box=20,992,347,38]: Social Security
+            - generic [ref=e107] [box=375,992,104,38]:
+              - generic [ref=e108] [box=376,1001,21,20]: $
+              - spinbutton [ref=e109] [box=397,993,81,36]: "36000"
+            - generic [ref=e110] [box=487,968,72,62]:
+              - generic [ref=e111] [box=487,968,72,16]: From age
+              - spinbutton "From age" [ref=e112] [box=487,992,72,38]: "67"
+            - generic [ref=e113] [box=567,968,72,62]:
+              - generic [ref=e114] [box=567,968,72,16]: To age
+              - spinbutton "To age" [ref=e115] [box=567,992,72,38]
+            - generic [ref=e116] [box=647,998,69,32]:
+              - checkbox "Inflates" [checked] [ref=e117] [box=647,1007,13,13]
+              - generic [ref=e118] [box=668,1002,48,24]: Inflates
+            - button "×" [ref=e119] [cursor=pointer] [box=724,994,41,36]
+        - generic [ref=e120] [box=20,1042,745,274]:
+          - generic [ref=e121] [box=20,1042,745,36]:
+            - paragraph [ref=e122] [box=20,1044,45,16]: College
+            - button "Add" [ref=e123] [cursor=pointer] [box=705,1042,60,36]
+          - paragraph [ref=e124] [box=20,1094,745,18]: Drag a block to move it. Drag edges to change length. Link a 529 above to pay it first.
+          - generic [ref=e125] [box=20,1136,745,72]:
+            - generic [ref=e127] [box=20,1162,1,14]: Y0
+            - generic [ref=e129] [box=120,1162,1,14]: Y5
+            - generic [ref=e131] [box=221,1162,1,14]: Y10
+            - generic [ref=e133] [box=322,1162,1,14]: Y15
+            - generic [ref=e135] [box=422,1162,1,14]: Y20
+            - generic [ref=e137] [box=523,1162,1,14]: Y25
+            - generic [ref=e139] [box=624,1162,1,14]: Y30
+            - generic [ref=e141] [box=724,1162,1,14]: Y35
+            - generic [ref=e143] [box=765,1162,1,14]: Y37
+            - generic [ref=e145] [box=60,1142,81,26]:
+              - button "Shorten or extend start of Kid 1 college" [box=61,1143,0,36]
+              - button "Kid 1 college. Drag to move." [ref=e146] [box=69,1143,63,36]:
+                - generic [ref=e147] [box=75,1144,51,14]: Kid 1 college
+                - generic [ref=e148] [box=75,1167,51,11]: $45k/yr · 4y
+              - button "Extend or shorten end of Kid 1 college" [box=132,1143,0,36]
+            - generic [ref=e149] [box=101,1170,81,26]:
+              - button "Shorten or extend start of Kid 2 college" [box=102,1171,0,36]
+              - button "Kid 2 college. Drag to move." [ref=e150] [box=110,1171,63,36]:
+                - generic [ref=e151] [box=116,1172,51,14]: Kid 2 college
+                - generic [ref=e152] [box=116,1195,51,11]: $45k/yr · 4y
+              - button "Extend or shorten end of Kid 2 college" [box=172,1171,0,36]
+          - generic [ref=e153] [box=20,1236,745,80]:
+            - generic [ref=e154] [box=20,1254,346,62]:
+              - generic [ref=e155] [box=20,1254,346,16]: Name
+              - textbox "Name" [ref=e156] [box=20,1278,346,38]: Kid 1 college
+            - generic [ref=e157] [box=378,1254,288,62]:
+              - generic [ref=e158] [box=378,1254,288,16]: Cost / year
+              - generic [ref=e159] [box=378,1278,288,38]:
+                - generic [ref=e160] [box=379,1287,21,20]: $
+                - spinbutton "Cost / year" [ref=e161] [box=400,1279,266,36]: "45000"
+            - generic [ref=e162] [box=678,1236,87,80]:
+              - paragraph [ref=e163] [box=678,1236,69,18]: Y2–5 · 4 yrs
+              - button "Remove" [ref=e164] [cursor=pointer] [box=678,1278,87,36]
+        - generic [ref=e165] [box=20,1328,745,322]:
+          - generic [ref=e166] [box=20,1328,72,62]:
+            - generic [ref=e167] [box=20,1328,72,16]: US state
+            - combobox "US state" [ref=e168] [box=20,1352,72,38]:
+              - option "AL · Alabama (5.0%)" [box=0,0,0,0]
+              - option "AK · Alaska (no retire tax)" [box=0,0,0,0]
+              - option "AZ · Arizona (2.5%)" [box=0,0,0,0]
+              - option "AR · Arkansas (3.9%)" [box=0,0,0,0]
+              - option "CA · California (9.3%)" [box=0,0,0,0]
+              - option "CO · Colorado (4.4%)" [box=0,0,0,0]
+              - option "CT · Connecticut (7.0%)" [box=0,0,0,0]
+              - option "DE · Delaware (6.6%)" [box=0,0,0,0]
+              - option "DC · District of Columbia (8.5%)" [box=0,0,0,0]
+              - option "FL · Florida (no retire tax)" [selected] [box=0,0,0,0]
+              - option "GA · Georgia (5.4%)" [box=0,0,0,0]
+              - option "HI · Hawaii (11.0%)" [box=0,0,0,0]
+              - option "ID · Idaho (5.8%)" [box=0,0,0,0]
+              - option "IL · Illinois (5.0%)" [box=0,0,0,0]
+              - option "IN · Indiana (3.0%)" [box=0,0,0,0]
+              - option "IA · Iowa (3.8%)" [box=0,0,0,0]
+              - option "KS · Kansas (5.7%)" [box=0,0,0,0]
+              - option "KY · Kentucky (4.0%)" [box=0,0,0,0]
+              - option "LA · Louisiana (4.3%)" [box=0,0,0,0]
+              - option "ME · Maine (7.1%)" [box=0,0,0,0]
+              - option "MD · Maryland (5.8%)" [box=0,0,0,0]
+              - option "MA · Massachusetts (5.0%)" [box=0,0,0,0]
+              - option "MI · Michigan (4.3%)" [box=0,0,0,0]
+              - option "MN · Minnesota (9.8%)" [box=0,0,0,0]
+              - option "MS · Mississippi (4.7%)" [box=0,0,0,0]
+              - option "MO · Missouri (4.8%)" [box=0,0,0,0]
+              - option "MT · Montana (5.9%)" [box=0,0,0,0]
+              - option "NE · Nebraska (5.8%)" [box=0,0,0,0]
+              - option "NV · Nevada (no retire tax)" [box=0,0,0,0]
+              - option "NH · New Hampshire (no retire tax)" [box=0,0,0,0]
+              - option "NJ · New Jersey (6.4%)" [box=0,0,0,0]
+              - option "NM · New Mexico (5.9%)" [box=0,0,0,0]
+              - option "NY · New York (6.9%)" [box=0,0,0,0]
+              - option "NC · North Carolina (4.3%)" [box=0,0,0,0]
+              - option "ND · North Dakota (2.5%)" [box=0,0,0,0]
+              - option "OH · Ohio (3.5%)" [box=0,0,0,0]
+              - option "OK · Oklahoma (4.8%)" [box=0,0,0,0]
+              - option "OR · Oregon (9.9%)" [box=0,0,0,0]
+              - option "PA · Pennsylvania (3.1%)" [box=0,0,0,0]
+              - option "RI · Rhode Island (6.0%)" [box=0,0,0,0]
+              - option "SC · South Carolina (6.4%)" [box=0,0,0,0]
+              - option "SD · South Dakota (no retire tax)" [box=0,0,0,0]
+              - option "TN · Tennessee (no retire tax)" [box=0,0,0,0]
+              - option "TX · Texas (no retire tax)" [box=0,0,0,0]
+              - option "UT · Utah (4.7%)" [box=0,0,0,0]
+              - option "VT · Vermont (8.8%)" [box=0,0,0,0]
+              - option "VA · Virginia (5.8%)" [box=0,0,0,0]
+              - option "WA · Washington (no retire tax)" [box=0,0,0,0]
+              - option "WV · West Virginia (5.1%)" [box=0,0,0,0]
+              - option "WI · Wisconsin (7.6%)" [box=0,0,0,0]
+              - option "WY · Wyoming (no retire tax)" [box=0,0,0,0]
+          - generic [ref=e169] [box=20,1406,88,62]:
+            - generic [ref=e170] [box=20,1406,88,16]: Federal rate
+            - generic [ref=e171] [box=20,1430,88,38]:
+              - spinbutton "Federal rate" [ref=e172] [box=21,1431,63,36]: "22"
+              - generic [ref=e173] [box=84,1439,23,20]: "%"
+          - generic [ref=e174] [box=20,1484,745,38]:
+            - button "12%" [ref=e175] [cursor=pointer] [box=20,1484,60,36]
+            - button "22%" [ref=e176] [cursor=pointer] [box=84,1484,63,36]
+            - button "24%" [ref=e177] [cursor=pointer] [box=151,1484,62,36]
+            - button "32%" [ref=e178] [cursor=pointer] [box=217,1484,63,36]
+            - button "35%" [ref=e179] [cursor=pointer] [box=284,1484,63,36]
+          - generic [ref=e180] [box=20,1538,745,62]:
+            - generic [ref=e181] [box=20,1538,745,16]: Draw order
+            - combobox "Draw order" [ref=e182] [box=20,1562,176,38]:
+              - option "Taxable → pre-tax → Roth" [selected] [box=0,0,0,0]
+              - option "Taxable → Roth → pre-tax" [box=0,0,0,0]
+              - option "Pro-rata" [box=0,0,0,0]
+          - generic [ref=e183] [box=20,1616,745,32]:
+            - checkbox "Gross-up taxes" [checked] [ref=e184] [box=20,1625,13,13]
+            - generic [ref=e185] [box=41,1620,98,24]: Gross-up taxes
+        - paragraph [ref=e186] [box=20,1662,745,18]: Combined pre-tax rate 22.0% · federal 22.0% + state 0.0% · No state income tax
+        - group [ref=e187] [box=20,1708,745,51]:
+          - generic "? What does gross-up taxes mean?" [ref=e188] [cursor=pointer] [box=20,1725,745,18]
+        - group [ref=e189] [box=20,1771,745,51]:
+          - generic "? How US state tax is applied" [ref=e190] [cursor=pointer] [box=20,1788,745,18]
+        - group [ref=e191] [box=20,1834,745,51]:
+          - generic "? Withdrawal order" [ref=e192] [cursor=pointer] [box=20,1851,745,18]
+      - generic [ref=e193] [box=798,218,622,666]:
+        - generic [ref=e194] [box=830,218,590,186]:
+          - generic [ref=e195] [box=830,218,287,61]:
+            - paragraph [ref=e196] [box=830,218,287,20]: Starting
+            - paragraph [ref=e197] [box=830,246,287,21]: $1.54M
+          - generic [ref=e198] [box=1133,218,287,61]:
+            - paragraph [ref=e199] [box=1133,218,287,20]: Ending
+            - paragraph [ref=e200] [box=1133,246,287,21]: $0
+          - generic [ref=e201] [box=830,319,287,61]:
+            - paragraph [ref=e202] [box=830,319,287,20]: Avg draw
+            - paragraph [ref=e203] [box=830,347,287,21]: $117k
+          - generic [ref=e204] [box=1133,319,287,85]:
+            - paragraph [ref=e205] [box=1133,319,287,20]: Years
+            - paragraph [ref=e206] [box=1133,347,287,21]: "37"
+        - figure [ref=e207] [box=830,417,590,208]:
+          - generic [ref=e208] [box=830,417,590,44]:
+            - paragraph [ref=e209] [box=830,417,195,16]: Balances
+            - generic [ref=e210] [box=830,437,195,24]:
+              - generic [ref=e211] [box=830,437,58,24]: Taxable
+              - generic [ref=e212] [box=900,437,78,24]: Retirement
+              - generic [ref=e213] [box=990,437,36,24]: "529"
+          - generic [ref=e214] [box=830,477,590,148]:
+            - img "Balances" [ref=e215] [box=830,477,590,148]:
+              - generic [ref=e219] [box=912,609,16,17]: "58"
+              - generic [ref=e220] [box=1323,609,15,17]: "93"
+            - generic [box=1314,485,98,17]: Hover to inspect
+        - figure [ref=e221] [box=830,637,590,208]:
+          - generic [ref=e222] [box=830,637,590,44]:
+            - paragraph [ref=e223] [box=830,637,232,16]: Cash flows
+            - generic [ref=e224] [box=830,657,232,24]:
+              - generic [ref=e225] [box=830,657,95,24]: Portfolio draw
+              - generic [ref=e226] [box=937,657,57,24]: College
+              - generic [ref=e227] [box=1007,657,56,24]: Income
+          - generic [ref=e228] [box=830,697,590,148]:
+            - img "Cash flows" [ref=e229] [box=830,697,590,148]:
+              - generic [ref=e233] [box=912,829,16,17]: "58"
+              - generic [ref=e234] [box=1323,829,15,17]: "93"
+            - generic [box=1314,705,98,17]: Hover to inspect
+        - paragraph [ref=e235] [box=830,857,590,20]: Hover charts for age detail. 529s pay linked college first. Scenario saves in this browser.
+        - button "Reset defaults" [ref=e236] [cursor=pointer] [box=830,889,129,36]
+  - button "Open Next.js Dev Tools" [ref=e242] [cursor=pointer] [box=22,846,32,32]
+  - alert [ref=e246] [box=-1,899,1,1]

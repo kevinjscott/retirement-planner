@@ -1,0 +1,2912 @@
+@import "tailwindcss";
+
+/* Page-owned layout only. Visual tokens from /assets/vercel-brand.css */
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+/* Reserve scrollbar space so overlays don't shift layout when a gutter appears. */
+html {
+  scrollbar-gutter: stable;
+}
+
+body.is-modal-open {
+  overflow: hidden;
+}
+
+.vbg-custom-screen {
+  /* Kill VBG's fat 36px / soft-radius control chrome for this app */
+  --vbg-control-height: 26px;
+  --vbg-control-height-touch: 32px;
+  --vbg-radius-small: 2px;
+  /* Neutralize VBG blue focus/info tokens — never blue chrome */
+  --vbg-focus: var(--vbg-gray-1000, #111);
+  --vbg-color-info: var(--vbg-text-secondary, #666);
+  accent-color: var(--vbg-gray-1000, #111);
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding: 6px var(--vbg-space-3) var(--vbg-space-2);
+  gap: 6px;
+}
+
+.vbg-custom-header {
+  margin: 0;
+  /* Kill VBG .vbg-header's clamp(32px–56px) bottom pad — huge empty band */
+  padding-block: 0 !important;
+  padding-block-end: 0 !important;
+  column-gap: var(--vbg-space-3);
+  row-gap: 0;
+}
+
+.vbg-custom-header .vbg-masthead {
+  padding-block: 0;
+  gap: var(--vbg-space-2);
+}
+
+/* Toolbar actions: center on one row — brand uses first-baseline, which
+   misaligns the Voice mode mic+label button vs text-only siblings. */
+.vbg-custom-header .vbg-document-meta {
+  align-items: center;
+  gap: 6px;
+}
+
+.vbg-custom-header .vbg-document-meta > .vbg-button,
+.vbg-custom-header .vbg-document-meta .vbg-voice-control > .vbg-button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  height: 26px;
+  min-height: 26px !important;
+  padding: 0 8px !important;
+  line-height: 1.2 !important;
+}
+
+.vbg-custom-header .vbg-document-meta > .vbg-button:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.vbg-custom-header .vbg-document-meta > .vbg-button > svg,
+.vbg-custom-header .vbg-document-meta .vbg-voice-control > .vbg-button > svg {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  display: block;
+  margin: 0;
+}
+
+/* One Voice control in the masthead — light chrome; polygons live inside when on. */
+.vbg-voice-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 26px;
+  vertical-align: middle;
+}
+
+/* Override brand aria-pressed black fill so Voice matches Copy JSON / Import.
+   Active = polygons only — no blue chrome ring / focus border. */
+.vbg-custom-header .vbg-voice-control > .vbg-button[aria-pressed="true"],
+.vbg-custom-header .vbg-voice-control > .vbg-button[data-voice-on="true"],
+.vbg-custom-header .vbg-voice-control > .vbg-button[aria-pressed="true"]:hover,
+.vbg-custom-header .vbg-voice-control > .vbg-button[data-voice-on="true"]:hover,
+.vbg-custom-header .vbg-voice-control > .vbg-button[aria-pressed="true"]:focus,
+.vbg-custom-header .vbg-voice-control > .vbg-button[data-voice-on="true"]:focus {
+  border-color: var(--vbg-border-default) !important;
+  background: #fff !important;
+  color: #1f1f1f !important;
+  box-shadow: none !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+}
+
+/* Keyboard focus: same thin gray ring as sibling masthead buttons — never blue. */
+.vbg-custom-header .vbg-voice-control > .vbg-button:focus-visible,
+.vbg-custom-header .vbg-voice-control > .vbg-button[aria-pressed="true"]:focus-visible,
+.vbg-custom-header .vbg-voice-control > .vbg-button[data-voice-on="true"]:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+}
+
+.vbg-custom-header .vbg-voice-control > .vbg-button[data-voice-on="true"] {
+  padding-right: 4px !important;
+  gap: 6px;
+}
+
+.vbg-voice-error-chip {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(180, 40, 50, 0.9);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+/* Fire shimmer when Voice / undo mutates a field / row (data-voice-path). */
+@keyframes voice-change-flash {
+  0% {
+    box-shadow:
+      0 0 0 0 rgba(255, 100, 0, 0),
+      0 0 0 0 rgba(255, 40, 0, 0),
+      inset 0 0 0 0 rgba(255, 200, 60, 0);
+    background-color: transparent;
+    outline-color: rgba(255, 120, 20, 0);
+  }
+  6% {
+    box-shadow:
+      0 0 0 2px rgba(255, 160, 40, 0.9),
+      0 0 10px 1px rgba(255, 70, 10, 0.5),
+      inset 0 0 6px 0 rgba(255, 210, 80, 0.35);
+    background-color: rgba(255, 140, 30, 0.14);
+    outline-color: rgba(255, 180, 50, 0.75);
+  }
+  14% {
+    box-shadow:
+      0 0 0 1px rgba(255, 90, 20, 0.7),
+      0 0 14px 2px rgba(220, 40, 0, 0.45),
+      inset 0 0 4px 0 rgba(255, 190, 40, 0.2);
+    background-color: rgba(255, 80, 10, 0.1);
+    outline-color: rgba(255, 90, 20, 0.55);
+  }
+  22% {
+    box-shadow:
+      0 0 0 2px rgba(255, 200, 60, 0.85),
+      0 0 12px 2px rgba(255, 110, 20, 0.55),
+      inset 0 0 8px 0 rgba(255, 230, 120, 0.4);
+    background-color: rgba(255, 180, 50, 0.16);
+    outline-color: rgba(255, 200, 70, 0.8);
+  }
+  32% {
+    box-shadow:
+      0 0 0 1px rgba(230, 60, 10, 0.65),
+      0 0 16px 1px rgba(255, 50, 0, 0.4),
+      inset 0 0 5px 0 rgba(255, 160, 40, 0.25);
+    background-color: rgba(255, 100, 20, 0.11);
+    outline-color: rgba(240, 70, 10, 0.5);
+  }
+  42% {
+    box-shadow:
+      0 0 0 2px rgba(255, 150, 30, 0.8),
+      0 0 11px 2px rgba(255, 90, 15, 0.5),
+      inset 0 0 7px 0 rgba(255, 220, 90, 0.35);
+    background-color: rgba(255, 160, 40, 0.13);
+    outline-color: rgba(255, 170, 50, 0.7);
+  }
+  55% {
+    box-shadow:
+      0 0 0 1px rgba(255, 120, 25, 0.55),
+      0 0 9px 1px rgba(255, 60, 10, 0.35),
+      inset 0 0 4px 0 rgba(255, 200, 70, 0.22);
+    background-color: rgba(255, 130, 30, 0.09);
+    outline-color: rgba(255, 130, 30, 0.45);
+  }
+  70% {
+    box-shadow:
+      0 0 0 1px rgba(255, 160, 50, 0.4),
+      0 0 8px 0 rgba(255, 100, 20, 0.25),
+      inset 0 0 3px 0 rgba(255, 210, 80, 0.15);
+    background-color: rgba(255, 150, 40, 0.06);
+    outline-color: rgba(255, 150, 40, 0.3);
+  }
+  85% {
+    box-shadow:
+      0 0 0 1px rgba(255, 140, 40, 0.2),
+      0 0 4px 0 rgba(255, 80, 15, 0.12),
+      inset 0 0 2px 0 rgba(255, 200, 60, 0.08);
+    background-color: rgba(255, 140, 30, 0.03);
+    outline-color: rgba(255, 140, 40, 0.15);
+  }
+  100% {
+    box-shadow:
+      0 0 0 0 rgba(255, 100, 0, 0),
+      0 0 0 0 rgba(255, 40, 0, 0),
+      inset 0 0 0 0 rgba(255, 200, 60, 0);
+    background-color: transparent;
+    outline-color: rgba(255, 120, 20, 0);
+  }
+}
+
+.voice-change-flash {
+  animation: voice-change-flash 1800ms ease-out;
+  border-radius: 4px;
+  outline: 1px solid transparent;
+  outline-offset: 0;
+}
+
+/* thinking-orbs accent — sits in the header band, clear of inputs */
+.orbs-backdrop {
+  position: fixed;
+  top: calc(6px + 3px);
+  left: var(--vbg-space-3, 0.75rem);
+  z-index: 2;
+  line-height: 0;
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.vbg-custom-header .vbg-identity {
+  padding-inline-start: 28px;
+}
+
+.vbg-custom-calc {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+  /* Own the split — slightly wider inputs so right column isn't an empty runway. */
+  display: grid !important;
+  grid-template-columns: minmax(34rem, 46rem) minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(0, 1fr) !important;
+  grid-template-areas:
+    "inputs primary"
+    "inputs output" !important;
+  column-gap: var(--vbg-space-3) !important;
+  row-gap: 6px !important;
+  align-items: stretch !important;
+}
+
+.vbg-custom-calc::before {
+  display: none !important;
+  content: none !important;
+}
+
+.vbg-custom-calc > .vbg-calculator-inputs {
+  grid-area: inputs !important;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  gap: 6px !important;
+  padding-block-end: var(--vbg-space-2);
+  padding-inline-end: 0 !important;
+  border: 0 !important;
+}
+
+.vbg-custom-calc > .vbg-result[data-priority="primary"] {
+  grid-area: primary !important;
+  min-width: 0;
+  padding-block: 0 !important;
+  padding-inline: 0 !important;
+  border: 0 !important;
+  gap: 2px;
+}
+
+.vbg-custom-calc > .vbg-calculator-output {
+  grid-area: output !important;
+  min-height: 0;
+  overflow: auto;
+  scrollbar-gutter: stable;
+  gap: 6px !important;
+  padding-block-end: var(--vbg-space-2);
+  padding-inline-start: 0 !important;
+  border: 0 !important;
+}
+
+.vbg-custom-calc > .vbg-result[data-priority="primary"] .vbg-result-label {
+  line-height: 1.2;
+}
+
+.vbg-custom-calc > .vbg-result[data-priority="primary"] .vbg-result-value {
+  font-size: clamp(1.2rem, 1.6vw, 1.45rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+.vbg-custom-calc > .vbg-result[data-priority="primary"] .vbg-result-detail {
+  margin: 0;
+  line-height: 1.25;
+}
+
+.vbg-custom-calc .vbg-control-group {
+  gap: 6px;
+}
+
+/* Wealth / College / Income — section wrappers with a head */
+.vbg-custom-calc .vbg-control-group:has(> .vbg-custom-section-head) {
+  margin-block-start: 2px;
+  padding-block-start: 8px;
+  border-block-start: 1px solid var(--vbg-border-default);
+  gap: 6px;
+}
+
+.vbg-custom-calc .vbg-field {
+  gap: 1px;
+  grid-template-columns: max-content;
+  justify-items: stretch;
+}
+
+.vbg-custom-calc .vbg-helper {
+  margin: 0;
+}
+
+/*
+ * Dense flat controls — spreadsheet / inspector look.
+ * Override VBG's 36px height, soft radius, and pill padding.
+ */
+.vbg-custom-screen
+  :where(
+    input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+    select,
+    textarea
+  ) {
+  box-sizing: border-box;
+  min-height: 26px !important;
+  height: 26px;
+  padding: 1px 6px !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: var(--vbg-background-100);
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.25 !important;
+}
+
+.vbg-custom-screen select {
+  padding-inline-end: 4px !important;
+}
+
+.vbg-custom-screen textarea {
+  height: auto;
+  min-height: 52px !important;
+  padding: 4px 6px !important;
+  line-height: 1.35 !important;
+}
+
+.vbg-custom-screen .vbg-unit-field {
+  box-sizing: border-box;
+  min-height: 26px !important;
+  height: 26px;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  overflow: hidden;
+}
+
+.vbg-custom-screen
+  .vbg-unit-field
+  > input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  min-height: 24px !important;
+  height: 24px;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+.vbg-custom-screen
+  .vbg-unit-field
+  > :where(.vbg-unit-prefix, .vbg-unit-suffix, .vbg-unit) {
+  padding-inline: 4px !important;
+  font-size: 11px;
+  line-height: 1.2;
+}
+
+.vbg-custom-screen .vbg-button:not(.wealth-row-remove) {
+  min-height: 26px !important;
+  height: auto;
+  padding: 2px 8px !important;
+  border-radius: 2px !important;
+  font-size: 12px !important;
+  line-height: 1.2 !important;
+  gap: 4px;
+}
+
+.vbg-custom-screen .vbg-custom-inline-actions .vbg-button,
+.vbg-custom-screen .vbg-custom-section-head .vbg-button {
+  box-sizing: border-box;
+  min-height: 26px !important;
+  height: 26px;
+  padding: 1px 8px !important;
+  font-size: 11px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  color: var(--vbg-text-secondary, #666);
+  background: transparent;
+  border-color: var(--vbg-border-default) !important;
+}
+
+.vbg-custom-screen .vbg-custom-inline-actions .vbg-button:hover,
+.vbg-custom-screen .vbg-custom-section-head .vbg-button:hover {
+  color: var(--vbg-text-primary, #111);
+  background: var(--vbg-background-200, #f2f2f2);
+  border-color: var(--vbg-border-strong, #999) !important;
+}
+
+/* Shared × remove — wealth, expenses, income, milestones */
+.vbg-custom-screen .wealth-row-remove {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  min-width: 1.5rem;
+  min-height: 0 !important;
+  margin: 0;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 2px;
+  background: transparent;
+  color: var(--vbg-text-secondary, #666);
+  font: inherit;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.vbg-custom-screen .wealth-row-remove:hover {
+  color: var(--vbg-text-primary, #111);
+  background: var(--vbg-background-200, #f2f2f2);
+}
+
+/* Kill browser number-spinner chrome and fat focus rings */
+.vbg-custom-screen input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
+.vbg-custom-screen input[type="number"]::-webkit-outer-spin-button,
+.vbg-custom-screen input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/*
+ * Focus: never blue, never thick bars.
+ * Kill VBG 2px/--vbg-focus rings, Tailwind :-moz-focusring, and UA outlines.
+ * Subtle flat inspector treatment: 1px gray border + thin box-shadow.
+ */
+.vbg-custom-screen :where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  .vbg-button
+):focus,
+.vbg-custom-screen :where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  .vbg-button
+):focus-visible,
+.vbg-custom-screen :where(
+  a,
+  button,
+  input,
+  select,
+  textarea,
+  summary,
+  .vbg-button
+):-moz-focusring,
+.vbg-custom-screen .vbg-unit-field:focus-within {
+  outline: none !important;
+  outline-offset: 0 !important;
+  outline-color: transparent !important;
+}
+
+/* Thin 1px focus — not VBG's chunky 2px blue ring */
+.vbg-custom-screen .vbg-unit-field:focus-within {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-screen
+  :where(input, select, textarea):not(
+    :is(.vbg-unit-field > *, [type="checkbox"], [type="radio"], [type="range"])
+  ):focus,
+.vbg-custom-screen
+  :where(input, select, textarea):not(
+    :is(.vbg-unit-field > *, [type="checkbox"], [type="radio"], [type="range"])
+  ):focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-screen :where(button, .vbg-button):focus-visible {
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-screen :where(a):focus-visible {
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+  border-radius: 2px;
+}
+
+.vbg-custom-screen input[type="checkbox"]:focus-visible,
+.vbg-custom-screen input[type="radio"]:focus-visible {
+  outline: 1px solid var(--vbg-gray-1000, #111) !important;
+  outline-offset: 1px !important;
+}
+
+.vbg-custom-dense {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 4px 8px;
+  row-gap: 6px;
+}
+
+.vbg-custom-dense > .vbg-field {
+  width: auto;
+  min-width: 0;
+  max-width: 100%;
+  flex: 0 1 auto;
+  gap: 1px;
+}
+
+.vbg-custom-dense .vbg-label {
+  margin: 0;
+  white-space: nowrap;
+  overflow: visible;
+  text-overflow: clip;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-dense .vbg-helper {
+  font-size: 9px;
+  line-height: 1.15;
+  color: var(--vbg-text-secondary);
+  white-space: normal;
+  max-width: 100%;
+}
+
+/* Tax + Gross-up always on their own row — never beside Spending */
+.vbg-custom-dense > .vbg-custom-dense-tax {
+  flex: 1 0 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  min-height: 26px;
+}
+
+.vbg-custom-dense > .vbg-custom-dense-tax > .vbg-custom-bracket,
+.vbg-custom-dense > .vbg-custom-dense-tax > .vbg-custom-check,
+.vbg-custom-dense > .vbg-custom-dense-tax > .vbg-custom-check-with-info {
+  align-self: center;
+  margin-bottom: 0;
+  min-height: 26px;
+}
+
+.vbg-custom-dense > .vbg-custom-dense-tax > .vbg-custom-rmd-meta {
+  flex: 1 0 100%;
+}
+
+.vbg-custom-label-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  min-width: 0;
+}
+
+.vbg-custom-check-with-info {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.vbg-custom-info {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+/* Beat VBG button chrome (min-height 36/44px, padding) — inline icon only */
+.vbg-custom-info-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 15px !important;
+  min-width: 15px !important;
+  max-width: 15px !important;
+  height: 15px !important;
+  min-height: 0 !important;
+  max-height: 15px !important;
+  margin: 0;
+  padding: 0 !important;
+  gap: 0 !important;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: 50%;
+  background: transparent !important;
+  color: var(--vbg-text-secondary);
+  font: 500 10px/1 inherit !important;
+  letter-spacing: 0;
+  white-space: nowrap;
+  cursor: help;
+  touch-action: manipulation;
+  transition: none;
+}
+
+.vbg-custom-info-btn:hover,
+.vbg-custom-info.is-open .vbg-custom-info-btn {
+  border-color: var(--vbg-border-strong);
+  color: var(--vbg-text-primary);
+  background: transparent !important;
+}
+
+.vbg-custom-screen .vbg-custom-info-btn:focus,
+.vbg-custom-screen .vbg-custom-info-btn:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  border-color: var(--vbg-border-strong) !important;
+  box-shadow: none !important;
+}
+
+.vbg-custom-info-bubble {
+  /* Fixed + JS clamp — absolute bubbles expand scrollWidth/scrollHeight. */
+  position: fixed;
+  z-index: 250;
+  width: max-content;
+  max-width: min(18rem, calc(100vw - 16px));
+  max-height: min(40vh, 16rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 6px 8px;
+  border: 1px solid var(--vbg-border-subtle);
+  border-radius: 2px;
+  background: var(--vbg-surface-primary, #fff);
+  color: var(--vbg-text-secondary);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.4;
+  letter-spacing: 0;
+  white-space: normal;
+  text-align: left;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+/*
+ * Dense-row fields: flat white sheets, not gray toolbar pills.
+ * Wealth-row-* keeps its own readable white chrome.
+ */
+.vbg-custom-dense .vbg-unit-field,
+.vbg-custom-dense > .vbg-field > select,
+.vbg-custom-dense .vbg-custom-order-control > select {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  min-height: 26px !important;
+  max-height: 26px;
+  margin: 0;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: var(--vbg-background-100, #fff) !important;
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.2 !important;
+  box-shadow: none;
+}
+
+.vbg-custom-dense .vbg-unit-field:hover,
+.vbg-custom-dense > .vbg-field > select:hover,
+.vbg-custom-dense .vbg-custom-order-control > select:hover {
+  border-color: var(--vbg-border-strong) !important;
+  background: var(--vbg-background-100, #fff) !important;
+}
+
+.vbg-custom-dense .vbg-unit-field:focus-within,
+.vbg-custom-dense > .vbg-field > select:focus,
+.vbg-custom-dense > .vbg-field > select:focus-visible,
+.vbg-custom-dense .vbg-custom-order-control > select:focus,
+.vbg-custom-dense .vbg-custom-order-control > select:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+  background: var(--vbg-background-100, #fff) !important;
+}
+
+.vbg-custom-dense .vbg-unit-field {
+  overflow: hidden;
+  padding: 0 !important;
+  width: auto;
+}
+
+.vbg-custom-dense
+  .vbg-unit-field
+  > input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  flex: 1 1 auto;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  min-height: 0 !important;
+  max-height: none;
+  padding: 0 4px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  font: inherit;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: inherit;
+}
+
+.vbg-custom-dense
+  .vbg-unit-field
+  > :where(.vbg-unit-prefix, .vbg-unit-suffix, .vbg-unit) {
+  flex: none;
+  padding-inline: 4px !important;
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-dense .vbg-unit-field > .vbg-unit-prefix {
+  padding-inline-end: 0 !important;
+}
+
+.vbg-custom-dense .vbg-unit-field > :where(.vbg-unit-suffix, .vbg-unit) {
+  padding-inline-start: 0 !important;
+}
+
+.vbg-custom-dense > .vbg-field > select,
+.vbg-custom-dense .vbg-custom-order-control > select {
+  -webkit-appearance: menulist;
+  appearance: auto;
+  cursor: pointer;
+  padding: 0 4px !important;
+  width: auto;
+}
+
+.vbg-custom-dense .vbg-custom-num {
+  width: 2.75rem;
+}
+
+.vbg-custom-dense .vbg-custom-pct {
+  width: 3.35rem;
+}
+
+.vbg-custom-dense .vbg-custom-money {
+  width: 5.25rem;
+}
+
+.vbg-custom-dense .vbg-custom-input-state {
+  width: 4.5rem;
+  max-width: 100%;
+}
+
+.vbg-custom-dense .vbg-custom-input-spend {
+  width: 5.75rem;
+  max-width: 100%;
+}
+
+.vbg-custom-dense .vbg-custom-input-md {
+  width: 6.25rem;
+  max-width: 100%;
+}
+
+.vbg-custom-dense .vbg-custom-input-order {
+  width: 9.25rem;
+  min-width: 8.5rem;
+  max-width: 100%;
+}
+
+/* Checkbox: plain text + box — no gray chip chrome */
+.vbg-custom-dense .vbg-custom-check {
+  gap: 5px;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  font-size: 11px;
+  font-weight: 400;
+  cursor: pointer;
+}
+
+.vbg-custom-dense .vbg-custom-check:hover {
+  border-color: transparent;
+  background: transparent;
+}
+
+.vbg-custom-dense .vbg-custom-bracket {
+  gap: 6px;
+}
+
+.vbg-custom-dense .vbg-custom-bracket > .vbg-custom-label-row > .vbg-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-dense .vbg-custom-bracket > .vbg-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-dense .vbg-custom-bracket > .vbg-custom-tax-meta {
+  font-size: 11px;
+}
+
+.vbg-custom-bracket {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 6px 8px;
+  min-width: 0;
+  flex: 0 0 auto;
+}
+
+.vbg-custom-bracket .vbg-label {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.vbg-custom-tax-meta {
+  margin: 0;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-compact-row {
+  display: flex !important;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--vbg-space-2) var(--vbg-space-3);
+}
+
+.vbg-custom-field-narrow {
+  width: max-content !important;
+  max-width: 100%;
+  flex: 0 0 auto;
+}
+
+.vbg-custom-field-narrow .vbg-unit-field.vbg-custom-num,
+.vbg-custom-num {
+  width: 3.1rem;
+  min-height: 26px;
+}
+
+.vbg-custom-field-narrow .vbg-unit-field.vbg-custom-money,
+.vbg-custom-money {
+  width: 5.5rem;
+  min-height: 26px;
+}
+
+.vbg-custom-wealth-row .vbg-custom-money,
+.vbg-custom-income-row .vbg-custom-money {
+  width: 100%;
+  min-width: 0;
+}
+
+.vbg-custom-num > input {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  padding-inline: 2px !important;
+}
+
+.vbg-custom-field-narrow .vbg-unit-field.vbg-custom-pct,
+.vbg-custom-pct {
+  width: 3.5rem;
+  min-height: 26px;
+}
+
+.vbg-custom-pct input {
+  width: 100%;
+  min-width: 0;
+}
+
+.vbg-custom-input-sm {
+  width: 4.25rem;
+  max-width: 4.25rem;
+  min-height: 26px;
+}
+
+/* Only bare narrow selects (no dedicated size class) stay compact */
+.vbg-custom-field-narrow > select:not([class*="vbg-custom-input-"]) {
+  width: 4.25rem;
+  max-width: 4.25rem;
+  min-height: 26px;
+}
+
+.vbg-custom-input-md,
+.vbg-custom-dense select.vbg-custom-input-md,
+.vbg-custom-compact-row select.vbg-custom-input-md {
+  width: 6.5rem;
+  max-width: 100%;
+  min-height: 26px;
+}
+
+.vbg-custom-input-spend,
+.vbg-custom-dense select.vbg-custom-input-spend {
+  width: 5.75rem;
+  max-width: 100%;
+  min-height: 26px;
+}
+
+.vbg-custom-input-order,
+.vbg-custom-dense select.vbg-custom-input-order {
+  width: 9.25rem;
+  min-width: 8.5rem;
+  max-width: 100%;
+  min-height: 26px;
+}
+
+.vbg-custom-input-state {
+  width: 4.75rem;
+  max-width: 100%;
+  min-height: 26px;
+}
+
+.vbg-custom-fed-presets {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 3px;
+  align-items: center;
+}
+
+.vbg-custom-fed-presets .vbg-button {
+  min-height: 22px !important;
+  padding: 1px 6px !important;
+  font-size: 11px !important;
+}
+
+.vbg-custom-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--vbg-space-2);
+  margin: 0;
+  min-height: 1.5rem;
+}
+
+.vbg-custom-section-head > div:first-child {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.vbg-custom-section-head > .vbg-label,
+.vbg-custom-section-head > div > .vbg-label {
+  margin: 0;
+  font-size: var(--vbg-type-compact);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--vbg-text-primary);
+  line-height: 1.25;
+}
+
+.vbg-custom-section-head > div > .vbg-meta {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.vbg-custom-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 1.75rem;
+  color: var(--vbg-text-primary);
+  font-size: var(--vbg-type-compact);
+}
+
+.vbg-custom-check-pad {
+  margin-bottom: 0;
+}
+
+.vbg-custom-wealth-head,
+.vbg-custom-wealth-row {
+  display: grid;
+  grid-template-columns:
+    7.5rem
+    minmax(3.75rem, 1fr)
+    5.75rem
+    5.25rem
+    minmax(8.5rem, 1.1fr)
+    3.5rem
+    1.75rem;
+  gap: 6px;
+  align-items: center;
+}
+
+.vbg-custom-wealth-head .wealth-head-liquid {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.vbg-custom-wealth-head {
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  line-height: 1.2;
+  padding-inline: 1px;
+}
+
+.vbg-custom-wealth-rows,
+.vbg-custom-income-rows {
+  display: grid;
+  gap: 4px;
+}
+
+/* ~9 account rows (~1.8× former 5-row viewport); header/add stay outside */
+.vbg-custom-wealth-rows {
+  max-height: calc(
+    9 * var(--vbg-control-height) + 8 * 4px
+  );
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-gutter: stable;
+  /* Always-on thin track (not overlay-only-on-hover) */
+  scrollbar-width: thin;
+  scrollbar-color: var(--vbg-border-strong, #999) var(--vbg-background-200, #eee);
+}
+
+.vbg-custom-wealth-rows::-webkit-scrollbar {
+  width: 8px;
+}
+
+.vbg-custom-wealth-rows::-webkit-scrollbar-track {
+  background: var(--vbg-background-200, #eee);
+}
+
+.vbg-custom-wealth-rows::-webkit-scrollbar-thumb {
+  background: var(--vbg-border-strong, #999);
+  border-radius: 2px;
+}
+
+.vbg-custom-wealth-rows::-webkit-scrollbar-thumb:hover {
+  background: var(--vbg-text-secondary, #666);
+}
+
+/* Net assets total + hover/tap bucket popover — below scroll area */
+.vbg-custom-net-worth {
+  position: relative;
+  margin-block-start: 2px;
+  padding-block-start: 6px;
+  border-block-start: 1px solid var(--vbg-border-default);
+}
+
+.vbg-custom-net-worth-total {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  align-items: baseline;
+  width: 100%;
+  min-height: 1.15rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--vbg-type-compact);
+  font-weight: 600;
+  color: var(--vbg-text-primary);
+  line-height: 1.2;
+  text-align: start;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+.vbg-custom-net-worth-total:hover,
+.vbg-custom-net-worth.is-open .vbg-custom-net-worth-total {
+  color: var(--vbg-text-primary);
+}
+
+.vbg-custom-net-worth-chevron {
+  display: inline-block;
+  margin-inline-start: 4px;
+  font-size: 9px;
+  font-weight: 400;
+  color: var(--vbg-text-secondary);
+  vertical-align: 1px;
+  transition: transform 0.12s ease;
+}
+
+.vbg-custom-net-worth.is-open .vbg-custom-net-worth-chevron {
+  transform: rotate(180deg);
+}
+
+.vbg-custom-net-worth-popover {
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: grid;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: 2px;
+  background: var(--vbg-surface-primary, #fff);
+  box-shadow: none;
+}
+
+.vbg-custom-net-worth-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px;
+  align-items: baseline;
+  min-height: 1.15rem;
+  line-height: 1.2;
+  font-size: 11px;
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-net-worth-row .vbg-meta {
+  margin: 0;
+  font-size: 10px;
+  text-align: end;
+  min-width: 2.25rem;
+}
+
+.vbg-custom-net-worth-total .vbg-numeric,
+.vbg-custom-net-worth-row .vbg-numeric {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-income-row {
+  display: grid;
+  grid-template-columns:
+    minmax(4.5rem, 1fr)
+    6.25rem
+    4.5rem
+    4.5rem
+    max-content
+    1.5rem;
+  gap: 6px;
+  align-items: center;
+}
+
+/* Wealth-row controls — same flat white chrome; keep readable Type labels */
+.vbg-custom-wealth-row .wealth-row-select {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 26px !important;
+  height: 26px;
+  margin: 0;
+  padding: 1px 4px !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: var(--vbg-background-100, #fff) !important;
+  background-color: var(--vbg-background-100, #fff) !important;
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.25 !important;
+  -webkit-appearance: menulist;
+  appearance: auto;
+}
+
+.vbg-custom-wealth-row .wealth-row-select:hover {
+  border-color: var(--vbg-border-strong, #999) !important;
+}
+
+.vbg-custom-wealth-row .wealth-row-select:focus,
+.vbg-custom-wealth-row .wealth-row-select:focus-visible,
+.vbg-custom-wealth-row .wealth-row-input:focus,
+.vbg-custom-wealth-row .wealth-row-input:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-wealth-row .wealth-row-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 26px !important;
+  height: 26px;
+  margin: 0;
+  padding: 1px 6px !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background-color: var(--vbg-background-100, #fff);
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+.vbg-custom-wealth-row .wealth-row-money {
+  width: 100%;
+  min-height: 26px !important;
+  height: 26px;
+}
+
+.vbg-custom-wealth-row .wealth-row-liquid {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Liquid-from year picker — compact trigger + fixed slider popover */
+.wealth-liquid-picker {
+  position: relative;
+  display: block;
+  width: 100%;
+  min-width: 0;
+}
+
+.wealth-liquid-trigger {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-width: 0;
+  min-height: 26px !important;
+  height: 26px;
+  margin: 0;
+  padding: 1px 4px !important;
+  gap: 0 !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: var(--vbg-background-100, #fff) !important;
+  background-color: var(--vbg-background-100, #fff) !important;
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.25 !important;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  cursor: pointer;
+}
+
+.wealth-liquid-picker.is-locked .wealth-liquid-trigger {
+  color: var(--vbg-text-secondary);
+}
+
+.wealth-liquid-trigger:hover,
+.wealth-liquid-picker.is-open .wealth-liquid-trigger {
+  border-color: var(--vbg-border-strong, #999) !important;
+}
+
+.vbg-custom-screen .wealth-liquid-trigger:focus,
+.vbg-custom-screen .wealth-liquid-trigger:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.wealth-liquid-bubble {
+  position: fixed;
+  z-index: 250;
+  display: grid;
+  gap: 6px;
+  width: max-content;
+  min-width: 12.5rem;
+  max-width: min(16rem, calc(100vw - 16px));
+  max-height: min(40vh, 10rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px 10px;
+  border: 1px solid var(--vbg-border-subtle);
+  border-radius: 2px;
+  background: var(--vbg-surface-primary, #fff);
+  color: var(--vbg-text-secondary);
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.wealth-liquid-bubble-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.wealth-liquid-readout {
+  font-size: 14px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--vbg-text-primary);
+  line-height: 1.2;
+}
+
+.wealth-liquid-now-btn {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 2px 8px !important;
+  min-height: 22px !important;
+  height: 22px;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: transparent !important;
+  color: var(--vbg-text-secondary);
+  font-family: inherit;
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  line-height: 1 !important;
+  cursor: pointer;
+}
+
+.wealth-liquid-now-btn:hover {
+  border-color: var(--vbg-border-strong, #999) !important;
+  color: var(--vbg-text-primary);
+}
+
+.wealth-liquid-now-btn.is-active {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  color: var(--vbg-text-primary);
+  background: color-mix(in srgb, var(--vbg-gray-1000, #111) 6%, transparent) !important;
+}
+
+.wealth-liquid-slider-label {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+
+.wealth-liquid-slider-label > .vbg-meta {
+  margin: 0;
+  font-size: 10px;
+}
+
+.wealth-liquid-slider {
+  box-sizing: border-box;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  height: 18px;
+  accent-color: var(--vbg-gray-1000, #111);
+  cursor: pointer;
+}
+
+.wealth-liquid-slider-ends {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-wealth-row .vbg-unit-field {
+  width: 100%;
+}
+
+.vbg-custom-wealth-row input[type="number"],
+.vbg-custom-wealth-row input[type="text"],
+.vbg-custom-income-row input[type="text"] {
+  min-width: 0;
+}
+
+.vbg-custom-events {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.vbg-custom-events-head,
+.vbg-custom-events-row {
+  display: grid;
+  grid-template-columns:
+    6.5rem
+    minmax(4rem, 1fr)
+    4.5rem
+    3.25rem
+    6.25rem
+    minmax(5rem, 0.9fr)
+    1.75rem;
+  gap: 6px;
+  align-items: center;
+}
+
+.vbg-custom-events-head {
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  line-height: 1.2;
+  padding-inline: 1px;
+}
+
+.vbg-custom-events-rows {
+  display: grid;
+  gap: 4px;
+}
+
+.vbg-custom-events-empty {
+  margin: 0;
+  padding: 4px 1px;
+}
+
+.vbg-custom-events-na {
+  font-size: 12px;
+  padding-inline: 2px;
+}
+
+.vbg-custom-events-row .wealth-row-select {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: none;
+  min-width: 0;
+  min-height: 26px !important;
+  height: 26px;
+  margin: 0;
+  padding: 1px 4px !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background: var(--vbg-background-100, #fff) !important;
+  background-color: var(--vbg-background-100, #fff) !important;
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  font-weight: 400 !important;
+  line-height: 1.25 !important;
+  -webkit-appearance: menulist;
+  appearance: auto;
+}
+
+.vbg-custom-events-row .wealth-row-select:hover {
+  border-color: var(--vbg-border-strong, #999) !important;
+}
+
+.vbg-custom-events-row .wealth-row-select:focus,
+.vbg-custom-events-row .wealth-row-select:focus-visible,
+.vbg-custom-events-row .wealth-row-input:focus,
+.vbg-custom-events-row .wealth-row-input:focus-visible,
+.vbg-custom-events-row input:focus,
+.vbg-custom-events-row input:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-events-row .wealth-row-input {
+  box-sizing: border-box;
+  width: 100%;
+  min-width: 0;
+  min-height: 26px !important;
+  height: 26px;
+  margin: 0;
+  padding: 1px 6px !important;
+  border: 1px solid var(--vbg-border-default) !important;
+  border-radius: 2px !important;
+  background-color: var(--vbg-background-100, #fff);
+  color: var(--vbg-text-primary, inherit);
+  font-family: inherit;
+  font-size: 12px !important;
+  line-height: 1.25 !important;
+}
+
+.vbg-custom-events-row .wealth-row-money {
+  width: 100%;
+  min-height: 26px !important;
+  height: 26px;
+}
+
+.vbg-custom-events-row .vbg-unit-field {
+  width: 100%;
+}
+
+.vbg-custom-events-row input[type="number"],
+.vbg-custom-events-row input[type="text"] {
+  min-width: 0;
+}
+
+/* Milestone markers: ticks on the plot; labels in the HTML rail below. */
+.vbg-custom-chart .vbg-custom-milestone-mark {
+  cursor: pointer;
+  outline: none;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-dot {
+  fill: var(--vbg-surface-primary);
+  stroke: var(--vbg-border-strong);
+  stroke-width: 1.25;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-tick-span {
+  stroke: var(--vbg-border-strong);
+  stroke-width: 1.25;
+  stroke-linecap: square;
+  pointer-events: none;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-tick-span {
+  stroke-width: 1.5;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-band {
+  fill: color-mix(in srgb, var(--vbg-border-subtle, rgba(0, 0, 0, 0.06)) 85%, transparent);
+  pointer-events: none;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-band.is-event {
+  fill: color-mix(in srgb, var(--vbg-gray-1000, #111) 6%, transparent);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-band.is-active {
+  fill: color-mix(in srgb, var(--vbg-gray-1000, #111) 10%, transparent);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-income .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-income .vbg-custom-milestone-tick {
+  stroke: var(--vbg-gray-1000, #111);
+  fill: var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-rmd .vbg-custom-milestone-dot {
+  fill: var(--vbg-surface-secondary);
+  stroke-dasharray: 2 1.5;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-bucket .vbg-custom-milestone-dot {
+  stroke: var(--vbg-text-secondary);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-depletion .vbg-custom-milestone-dot {
+  fill: transparent;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-life .vbg-custom-milestone-dot {
+  fill: var(--vbg-surface-secondary);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-pinch .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-pinch .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-pinch .vbg-custom-milestone-tick-span {
+  fill: #b42318;
+  stroke: #b42318;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-draw .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-draw .vbg-custom-milestone-tick {
+  stroke: var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-personal .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-personal .vbg-custom-milestone-tick {
+  stroke: var(--vbg-gray-700, #666);
+  fill: var(--vbg-gray-700, #666);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-event .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-event .vbg-custom-milestone-tick-span {
+  stroke: var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-selected .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark:hover .vbg-custom-milestone-dot,
+.vbg-custom-chart .vbg-custom-milestone-mark:focus-visible .vbg-custom-milestone-dot {
+  stroke: var(--vbg-gray-1000, #111);
+  stroke-width: 1.75;
+}
+
+.vbg-custom-chart .vbg-custom-milestone-mark.is-selected .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-mark.is-selected .vbg-custom-milestone-tick-span,
+.vbg-custom-chart .vbg-custom-milestone-mark:hover .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-mark:hover .vbg-custom-milestone-tick-span,
+.vbg-custom-chart .vbg-custom-milestone-mark:focus-visible .vbg-custom-milestone-tick,
+.vbg-custom-chart .vbg-custom-milestone-mark:focus-visible .vbg-custom-milestone-tick-span {
+  stroke-width: 1.75;
+  stroke: var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-milestone-popup {
+  /* Fixed + JS clamp — must not grow chart/output scroll bounds. */
+  position: fixed;
+  z-index: 120;
+  display: grid;
+  gap: 4px;
+  max-width: min(22rem, calc(100vw - 16px));
+  max-height: min(50vh, 20rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 8px 10px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius-small);
+  background: var(--vbg-surface-primary);
+  box-shadow: 0 1px 0 var(--vbg-border-subtle);
+  pointer-events: auto;
+}
+
+.vbg-custom-milestone-guide {
+  stroke: var(--vbg-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 2 3;
+  pointer-events: none;
+}
+
+.vbg-custom-milestone-guide-band {
+  fill: color-mix(in srgb, var(--vbg-gray-1000, #111) 8%, transparent);
+  pointer-events: none;
+}
+
+/* Dedicated label rail under the plot — no SVG text soup. */
+.vbg-custom-milestone-rail {
+  display: grid;
+  gap: 4px;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--vbg-border-subtle, rgba(0, 0, 0, 0.08));
+  min-width: 0;
+}
+
+/* Short timeline under cash-flows — marks only (no plot overlay). */
+.vbg-custom-milestone-strip {
+  margin-top: 2px;
+  padding-top: 2px;
+  border-top: 1px solid var(--vbg-border-subtle, rgba(0, 0, 0, 0.08));
+  min-width: 0;
+  overflow: hidden;
+}
+
+.vbg-custom-milestone-strip-svg {
+  display: block;
+  width: 100%;
+  height: 28px;
+}
+
+.vbg-custom-milestone-strip-axis {
+  stroke: var(--vbg-gray-400, #ccc);
+  stroke-width: 1;
+}
+
+.vbg-custom-echart-host {
+  width: 100%;
+  height: 100%;
+}
+
+.vbg-custom-echart-host canvas {
+  display: block;
+}
+
+.vbg-custom-milestone-rail-label {
+  margin: 0;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--vbg-text-secondary, #666);
+}
+
+.vbg-custom-milestone-rail-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  min-width: 0;
+}
+
+.vbg-custom-milestone-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 100%;
+  margin: 0;
+  padding: 3px 7px 3px 6px;
+  border: 1px solid var(--vbg-border-default, #ddd);
+  border-radius: 3px;
+  background: var(--vbg-surface-primary, #fff);
+  color: var(--vbg-text-primary, #111);
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.25;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.vbg-custom-milestone-chip:hover,
+.vbg-custom-milestone-chip:focus-visible {
+  border-color: var(--vbg-border-strong, #999);
+  outline: none;
+}
+
+.vbg-custom-milestone-chip.is-active {
+  border-color: var(--vbg-gray-1000, #111);
+  background: color-mix(in srgb, var(--vbg-gray-1000, #111) 5%, transparent);
+}
+
+.vbg-custom-milestone-chip-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 99px;
+  background: var(--vbg-border-strong, #666);
+  flex-shrink: 0;
+}
+
+.vbg-custom-milestone-chip.is-personal .vbg-custom-milestone-chip-dot {
+  background: var(--vbg-gray-700, #666);
+}
+
+.vbg-custom-milestone-chip.is-event .vbg-custom-milestone-chip-dot,
+.vbg-custom-milestone-chip.is-income .vbg-custom-milestone-chip-dot,
+.vbg-custom-milestone-chip.is-draw .vbg-custom-milestone-chip-dot {
+  background: var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-milestone-chip.is-pinch .vbg-custom-milestone-chip-dot {
+  background: #b42318;
+}
+
+.vbg-custom-milestone-chip.is-rmd .vbg-custom-milestone-chip-dot,
+.vbg-custom-milestone-chip.is-peak .vbg-custom-milestone-chip-dot {
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--vbg-border-strong, #666);
+}
+
+.vbg-custom-milestone-chip-label {
+  font-weight: 550;
+  letter-spacing: -0.01em;
+}
+
+.vbg-custom-chart-head-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.vbg-custom-chart.is-milestone-open {
+  position: relative;
+  z-index: 2;
+}
+
+.vbg-custom-milestone-detail-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.vbg-custom-milestone-detail-title,
+.vbg-custom-milestone-title-input {
+  margin: 0;
+  color: var(--vbg-text-primary);
+  font-size: 13px;
+  font-weight: var(--vbg-weight-medium);
+  line-height: 1.25;
+}
+
+.vbg-custom-milestone-title-input {
+  width: 100%;
+  min-width: 0;
+  padding: 2px 4px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius-small);
+  background: var(--vbg-surface-primary);
+}
+
+.vbg-custom-milestone-detail-edit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+
+.vbg-custom-milestone-detail-edit > .vbg-field {
+  gap: 2px;
+}
+
+.vbg-custom-milestone-rows {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+  margin-top: 8px;
+}
+
+.vbg-custom-milestone-rows-head,
+.vbg-custom-milestone-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) 4.5rem 3.5rem 1.75rem;
+  gap: 6px;
+  align-items: center;
+  min-width: 0;
+}
+
+.vbg-custom-milestone-rows-head {
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  line-height: 14px;
+  padding-inline: 2px;
+}
+
+.vbg-custom-milestone-row .wealth-row-input {
+  width: 100%;
+  min-width: 0;
+  height: 28px;
+  padding: 0 6px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius-small);
+  background: var(--vbg-surface-primary);
+  color: var(--vbg-text-primary);
+  font: inherit;
+  font-size: 12px;
+}
+
+.vbg-custom-milestone-row .wealth-row-input:focus,
+.vbg-custom-milestone-row .wealth-row-input:focus-visible {
+  border-color: var(--vbg-gray-1000, #111);
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111);
+}
+
+.vbg-custom-timeline-wrap {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.vbg-custom-timeline {
+  position: relative;
+  height: 72px;
+  margin: 0;
+  user-select: none;
+  touch-action: none;
+}
+
+.vbg-custom-timeline-rail {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  background: var(--vbg-border-default);
+  transform: translateY(-50%);
+}
+
+.vbg-custom-timeline-mark {
+  position: absolute;
+  top: calc(50% - 6px);
+  width: 1px;
+  height: 12px;
+  background: var(--vbg-border-strong);
+  transform: translateX(-50%);
+}
+
+.vbg-custom-block {
+  position: absolute;
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) 6px;
+  height: 28px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius-small);
+  background: var(--vbg-surface-secondary);
+  overflow: hidden;
+  z-index: 1;
+}
+
+.vbg-custom-block.is-selected {
+  border-color: var(--vbg-border-strong);
+  background: var(--vbg-surface-primary);
+  outline: 1px solid var(--vbg-gray-1000, #111);
+  outline-offset: 1px;
+  z-index: 2;
+}
+
+.vbg-custom-block-body,
+.vbg-custom-block-handle {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: inherit;
+  font: inherit;
+}
+
+.vbg-custom-block-body {
+  display: grid;
+  align-content: center;
+  gap: 1px;
+  min-width: 0;
+  padding-inline: 4px;
+  text-align: left;
+  cursor: grab;
+}
+
+.vbg-custom-block.is-compact .vbg-custom-block-body {
+  padding-inline: 2px;
+  justify-items: center;
+  text-align: center;
+}
+
+.vbg-custom-block-body:active {
+  cursor: grabbing;
+}
+
+.vbg-custom-block-title {
+  overflow: hidden;
+  color: var(--vbg-text-primary);
+  font-size: 11px;
+  font-weight: var(--vbg-weight-medium);
+  line-height: 1.15;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  word-break: normal;
+  overflow-wrap: normal;
+}
+
+.vbg-custom-block.is-compact .vbg-custom-block-title {
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+
+.vbg-custom-block-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--vbg-text-secondary);
+  font-size: 9px;
+  line-height: 1.1;
+}
+
+.vbg-custom-block-handle {
+  cursor: ew-resize;
+  background: var(--vbg-border-subtle);
+}
+
+.vbg-custom-block-handle:hover,
+.vbg-custom-block.is-selected .vbg-custom-block-handle {
+  background: var(--vbg-border-default);
+}
+
+.vbg-custom-popover {
+  position: absolute;
+  z-index: 5;
+  width: 280px;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius);
+  background: var(--vbg-surface-primary);
+}
+
+.vbg-custom-popover-head,
+.vbg-custom-popover-actions,
+.vbg-custom-output-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+}
+
+.vbg-custom-popover-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.vbg-custom-insights {
+  display: grid;
+  /* Wider cards → fewer columns → less label/detail wrap (was ~238px tall band). */
+  grid-template-columns: repeat(auto-fit, minmax(11.5rem, 1fr));
+  gap: 6px 10px;
+  align-items: start;
+}
+
+.vbg-custom-order-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+}
+
+.vbg-custom-draw-status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.vbg-custom-draw-status-btn {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 10px !important;
+  min-width: 10px !important;
+  max-width: 10px !important;
+  height: 10px !important;
+  min-height: 0 !important;
+  max-height: 10px !important;
+  margin: 0;
+  padding: 0 !important;
+  border: 1px solid color-mix(in srgb, currentColor 35%, transparent);
+  border-radius: 50%;
+  background: currentColor !important;
+  color: var(--vbg-color-success, #2a7a3a);
+  cursor: help;
+  touch-action: manipulation;
+  transition: none;
+}
+
+.vbg-custom-draw-status-btn.is-best {
+  color: var(--vbg-color-success, #2a7a3a);
+}
+
+.vbg-custom-draw-status-btn.is-close {
+  color: var(--vbg-color-warning, #c9a227);
+}
+
+.vbg-custom-draw-status-btn.is-worse {
+  color: var(--vbg-color-danger, #c0392b);
+}
+
+.vbg-custom-draw-status-btn:hover,
+.vbg-custom-draw-status.is-open .vbg-custom-draw-status-btn {
+  box-shadow: 0 0 0 1px color-mix(in srgb, currentColor 45%, transparent);
+}
+
+.vbg-custom-screen .vbg-custom-draw-status-btn:focus,
+.vbg-custom-screen .vbg-custom-draw-status-btn:focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-draw-status-bubble {
+  position: fixed;
+  z-index: 250;
+  display: grid;
+  gap: 4px;
+  width: max-content;
+  max-width: min(22rem, calc(100vw - 16px));
+  max-height: min(50vh, 20rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 7px 8px;
+  border: 1px solid var(--vbg-border-subtle);
+  border-radius: 2px;
+  background: var(--vbg-surface-primary, #fff);
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  font-weight: 400;
+  line-height: 1.3;
+  letter-spacing: 0;
+  white-space: normal;
+  text-align: left;
+  box-shadow: none;
+  pointer-events: auto;
+}
+
+.vbg-custom-draw-status-bubble .vbg-custom-draw-order-title {
+  margin: 0;
+  font-size: var(--vbg-type-compact, 0.8125rem);
+  font-weight: var(--vbg-weight-heading);
+  color: var(--vbg-text-primary);
+  line-height: 1.25;
+}
+
+.vbg-custom-draw-status-bubble .vbg-custom-draw-order-rule,
+.vbg-custom-draw-status-bubble .vbg-custom-draw-order-evidence,
+.vbg-custom-draw-status-bubble .vbg-meta {
+  margin: 0;
+  line-height: 1.3;
+}
+
+.vbg-custom-draw-status-bubble > .vbg-button {
+  justify-self: start;
+  margin-top: 2px;
+  min-height: 24px !important;
+  padding: 2px 8px !important;
+  font-size: 11px !important;
+}
+
+.vbg-custom-draw-order-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--vbg-type-compact, 0.8125rem);
+  line-height: 1.3;
+}
+
+.vbg-custom-draw-order-table th,
+.vbg-custom-draw-order-table td {
+  padding: 2px 6px 2px 0;
+  text-align: left;
+  vertical-align: baseline;
+  border-block-end: 1px solid var(--vbg-border-subtle, rgba(0, 0, 0, 0.08));
+}
+
+.vbg-custom-draw-order-table th:last-child,
+.vbg-custom-draw-order-table td:last-child {
+  padding-inline-end: 0;
+}
+
+.vbg-custom-draw-order-table th {
+  color: var(--vbg-text-secondary);
+  font-weight: 500;
+}
+
+.vbg-custom-draw-order-table .vbg-numeric {
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-draw-order-table tr.is-best-row td {
+  font-weight: var(--vbg-weight-heading);
+}
+
+.vbg-custom-draw-order-table tr.is-current-row:not(.is-best-row) td {
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-insight {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+  align-content: start;
+}
+
+.vbg-custom-insight .vbg-stat-label {
+  margin: 0;
+  line-height: 1.2;
+}
+
+.vbg-custom-insight .vbg-meta {
+  margin: 0;
+  line-height: 1.25;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+}
+
+.vbg-custom-insight-value {
+  margin: 0;
+  color: var(--vbg-text-primary);
+  font-size: 0.9rem;
+  font-weight: var(--vbg-weight-heading);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.vbg-custom-insight.is-ok .vbg-custom-insight-value {
+  color: var(--vbg-color-success);
+}
+
+.vbg-custom-insight.is-warn .vbg-custom-insight-value {
+  color: var(--vbg-color-warning);
+}
+
+.vbg-custom-insight.is-bad .vbg-custom-insight-value {
+  color: var(--vbg-color-error);
+}
+
+.vbg-custom-chart {
+  margin: 0;
+  /* Plot clips; hover tip + milestone detail are position:fixed. */
+  overflow: hidden;
+}
+
+.vbg-custom-chart.vbg-chart,
+.vbg-custom-calc .vbg-custom-chart {
+  margin-block: 0;
+}
+
+/* Beat VBG .vbg-chart-header { margin-block-end: space-4 (16px) } */
+.vbg-custom-chart .vbg-chart-header.vbg-custom-chart-head,
+.vbg-custom-chart-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 6px;
+  margin-block-end: 2px !important;
+  margin-bottom: 2px !important;
+}
+
+.vbg-custom-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 8px;
+  align-items: center;
+}
+
+.vbg-custom-legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--vbg-text-secondary);
+  font-size: 14px;
+  line-height: 1.3;
+}
+
+.vbg-custom-legend-item[title] {
+  cursor: help;
+}
+
+.vbg-custom-legend-item::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 99px;
+  background: var(--vbg-series-color, var(--vbg-chart-1));
+  vertical-align: middle;
+  flex-shrink: 0;
+}
+
+.vbg-custom-chart-title-block {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.vbg-custom-chart-title-block > .vbg-label {
+  margin: 0;
+  font-size: var(--vbg-type-compact);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: var(--vbg-text-primary);
+  line-height: 1.25;
+}
+
+.vbg-custom-chart-sub {
+  max-width: 42rem;
+  margin: 0;
+  line-height: 1.3;
+}
+
+.vbg-custom-chart .vbg-series-living {
+  stroke-dasharray: 4 3;
+  stroke-width: 1.35;
+}
+
+.vbg-custom-legend-item.vbg-series-living::before,
+.vbg-custom-legend-item.is-dashed::before {
+  width: 10px;
+  height: 0;
+  border-radius: 0;
+  background: transparent;
+  border-top: 1.5px dashed var(--vbg-series-color, var(--vbg-chart-1));
+}
+
+.vbg-custom-legend-item.is-dotted::before {
+  width: 10px;
+  height: 0;
+  border-radius: 0;
+  background: transparent;
+  border-top: 1.5px dotted var(--vbg-series-color, var(--vbg-chart-1));
+}
+
+.vbg-custom-legend-item.is-pinch-band::before {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+  background: rgba(180, 35, 24, 0.22);
+  box-shadow: inset 0 0 0 1px rgba(180, 35, 24, 0.45);
+}
+
+.vbg-custom-chart-viewport,
+.vbg-report .vbg-custom-chart-viewport.vbg-chart-viewport {
+  position: relative;
+  height: 118px;
+  /* Clamp chart tips inside the plot — never grow page scrollWidth/Height.
+   * Beat brand .vbg-chart-viewport { overflow-x: auto }. */
+  overflow: hidden !important;
+  overflow-x: hidden !important;
+  overflow-y: hidden !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: auto;
+}
+
+/* Cash flows — 2× default plot height (Balances stays shorter). */
+.vbg-custom-chart-viewport.is-tall,
+.vbg-report .vbg-custom-chart-viewport.vbg-chart-viewport.is-tall {
+  height: 236px;
+}
+
+.vbg-custom-chart svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.vbg-custom-chart .vbg-custom-chart-tick {
+  fill: var(--vbg-text-secondary);
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-chart .vbg-series-stroke {
+  stroke-width: 1.75;
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.vbg-custom-chart .vbg-data-point {
+  fill: var(--vbg-series-color, var(--vbg-chart-1));
+  stroke: var(--vbg-surface-primary);
+  stroke-width: 1.5;
+}
+
+.vbg-custom-crosshair {
+  stroke: var(--vbg-border-strong);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.vbg-custom-tooltip {
+  /* Fixed + JS clamp — must not clip series rows inside the 118/236px plot. */
+  position: fixed;
+  z-index: 110;
+  display: grid;
+  gap: 2px;
+  max-width: min(18rem, calc(100vw - 16px));
+  max-height: min(70vh, 24rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 6px 8px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius-small);
+  background: var(--vbg-background-100);
+  box-shadow:
+    0 0 0 1px var(--vbg-gray-alpha-200),
+    0 4px 12px var(--vbg-gray-alpha-400);
+  color: var(--vbg-text-primary);
+  font-size: 14px;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+.vbg-custom-tooltip-breakdown {
+  display: grid;
+  gap: 2px;
+  margin-top: 3px;
+  padding-top: 3px;
+  border-top: 1px solid var(--vbg-border-subtle);
+  color: var(--vbg-text-secondary);
+}
+
+.vbg-custom-tooltip-breakdown-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--vbg-text-tertiary, var(--vbg-text-secondary));
+}
+
+.vbg-custom-tooltip strong {
+  font-weight: var(--vbg-weight-medium);
+}
+
+.vbg-custom-tooltip-series::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 4px;
+  border-radius: 99px;
+  background: var(--vbg-series-color, var(--vbg-chart-1));
+  vertical-align: middle;
+}
+
+.vbg-custom-help {
+  margin: 0;
+}
+
+.vbg-custom-help summary {
+  cursor: pointer;
+  color: var(--vbg-text-secondary);
+  font-size: var(--vbg-type-metadata);
+}
+
+.vbg-custom-help .vbg-helper {
+  margin-top: 4px;
+  max-width: 40rem;
+}
+
+.vbg-custom-output-actions {
+  justify-content: flex-start;
+}
+
+@media (max-width: 1100px) {
+  .vbg-custom-wealth-head,
+  .vbg-custom-events-head {
+    display: none;
+  }
+
+  .vbg-custom-wealth-row {
+    grid-template-columns: 8rem minmax(0, 1fr) 6rem 5rem minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 960px) {
+  .vbg-custom-screen {
+    height: auto;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .vbg-custom-calc {
+    height: auto;
+    overflow: visible;
+    grid-template-columns: 1fr !important;
+    grid-template-rows: auto !important;
+    grid-template-areas:
+      "primary"
+      "inputs"
+      "output" !important;
+  }
+
+  .vbg-custom-calc > .vbg-calculator-inputs,
+  .vbg-custom-calc > .vbg-calculator-output {
+    overflow: visible;
+  }
+
+  .vbg-custom-wealth-row,
+  .vbg-custom-income-row,
+  .vbg-custom-events-row,
+  .vbg-custom-milestone-row,
+  .vbg-custom-popover-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .vbg-custom-milestone-rows-head {
+    display: none;
+  }
+
+  .vbg-custom-field-narrow,
+  .vbg-custom-input-sm,
+  .vbg-custom-field-narrow input[type="number"],
+  .vbg-custom-field-narrow select {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+/* --- Modal / popover prominence (append-only; avoid dense-row conflicts) --- */
+
+.vbg-custom-timeline-wrap.is-popover-open {
+  position: relative;
+  z-index: 80;
+}
+
+.vbg-custom-popover-scrim {
+  position: fixed;
+  inset: 0;
+  /* Avoid 100vw — includes scrollbar and expands horizontal scroll. */
+  width: auto;
+  height: auto;
+  z-index: 1;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: block;
+  cursor: default;
+  background: var(--vbg-gray-alpha-800);
+}
+
+.vbg-custom-popover.vbg-custom-modal,
+.vbg-custom-popover {
+  z-index: 2;
+  width: min(268px, calc(100% - 16px));
+  padding: 8px;
+  gap: 6px;
+  border: 1px solid var(--vbg-gray-1000);
+  border-radius: 4px;
+  background: var(--vbg-background-100);
+  color: var(--vbg-text-primary);
+  box-shadow:
+    0 0 0 1px var(--vbg-gray-alpha-400),
+    0 4px 8px var(--vbg-gray-alpha-400),
+    0 16px 32px var(--vbg-gray-alpha-600),
+    0 32px 64px var(--vbg-gray-alpha-500);
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-custom-popover-head {
+  display: block;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--vbg-border-default);
+  margin-bottom: 0;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-modal-title-field {
+  display: grid;
+  gap: 1px;
+  min-width: 0;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-custom-popover-grid {
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 6px;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-modal-span {
+  grid-column: 1 / -1;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-field {
+  gap: 1px;
+  min-width: 0;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-label {
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-unit-field {
+  min-height: 26px !important;
+  height: 26px;
+  border-radius: 2px !important;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-unit-field:focus-within,
+.vbg-custom-popover.vbg-custom-modal
+  .vbg-modal-title-field
+  > input:focus,
+.vbg-custom-popover.vbg-custom-modal
+  .vbg-modal-title-field
+  > input:focus-visible {
+  border-color: var(--vbg-gray-1000, #111) !important;
+  outline: none !important;
+  outline-offset: 0 !important;
+  box-shadow: 0 0 0 1px var(--vbg-gray-1000, #111) !important;
+}
+
+.vbg-custom-popover.vbg-custom-modal
+  .vbg-unit-field
+  > input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+.vbg-custom-popover.vbg-custom-modal
+  .vbg-modal-title-field
+  > input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  min-height: 24px !important;
+  height: 24px;
+  font-size: 12px !important;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-unit-suffix {
+  flex: 0 1 auto;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-modal-chip {
+  display: block;
+  box-sizing: border-box;
+  width: fit-content;
+  max-width: 100%;
+  margin: 0;
+  padding: 1px 6px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: 2px;
+  background: var(--vbg-background-200, var(--vbg-surface-secondary));
+  color: var(--vbg-text-secondary);
+  font-size: 10px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-modal-chip.is-linked {
+  color: var(--vbg-text-primary);
+  border-color: var(--vbg-border-strong, var(--vbg-border-default));
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-custom-popover-actions {
+  justify-content: space-between;
+  padding-top: 4px;
+  border-top: 1px solid var(--vbg-border-default);
+  margin-top: 0;
+}
+
+.vbg-custom-popover.vbg-custom-modal .vbg-custom-popover-actions .vbg-button {
+  min-height: 22px !important;
+  padding: 1px 6px !important;
+  font-size: 11px !important;
+}
+
+@media (max-width: 960px) {
+  .vbg-custom-popover.vbg-custom-modal .vbg-custom-popover-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/*
+ * Final focus/info kill — beats vercel-brand.css load order.
+ * Never blue outlines, rings, or info badges in this calculator.
+ */
+.vbg-custom-screen,
+.vbg-custom-screen .vbg-unit-field,
+.vbg-custom-screen :where(a, button, input, select, textarea, summary, .vbg-button) {
+  --vbg-focus: var(--vbg-gray-1000, #111) !important;
+  --vbg-color-info: var(--vbg-text-secondary, #666) !important;
+}
+
+.vbg-custom-screen .vbg-unit-field:focus-within,
+.vbg-custom-screen :where(a, button, input, select, textarea, summary, .vbg-button):focus,
+.vbg-custom-screen :where(a, button, input, select, textarea, summary, .vbg-button):focus-visible {
+  outline: none !important;
+  outline-offset: 0 !important;
+  outline-color: transparent !important;
+}
+
+.vbg-custom-screen .vbg-callout[data-tone="info"],
+.vbg-custom-screen .vbg-note[data-tone="info"] {
+  background: var(--vbg-background-200, #f2f2f2) !important;
+  border-color: var(--vbg-border-strong, #999) !important;
+  color: var(--vbg-text-primary, #111) !important;
+}
+
+/* --- AI import (masthead trigger + modal) --- */
+
+.vbg-custom-import-toast {
+  align-self: center;
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vbg-custom-import-drop {
+  display: grid;
+  gap: 6px;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 6px;
+  border: 1px dashed var(--vbg-border-default);
+  border-radius: 2px;
+  overflow: auto;
+}
+
+.vbg-custom-import-drop.is-dragover {
+  background: var(--vbg-background-200, #f2f2f2);
+  border-color: var(--vbg-gray-1000, #111);
+  outline: 1px dashed var(--vbg-gray-1000, #111);
+  outline-offset: 1px;
+}
+
+.vbg-custom-import-drop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.vbg-custom-import-text {
+  width: 100%;
+  resize: vertical;
+  min-height: 5.5rem;
+  max-height: 12rem;
+}
+
+.vbg-custom-import-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vbg-custom-import-thumbs li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  width: 64px;
+}
+
+.vbg-custom-import-thumbs img {
+  display: block;
+  width: 64px;
+  height: 48px;
+  object-fit: cover;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: 2px;
+  background: var(--vbg-background-100, #fff);
+}
+
+.vbg-custom-import-thumbs .vbg-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  min-height: 18px !important;
+  padding: 0 4px !important;
+  font-size: 11px !important;
+  line-height: 1 !important;
+  background: var(--vbg-background-100, #fff);
+}
+
+.vbg-custom-import-thumbs .vbg-meta {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 10px;
+}
+
+.vbg-custom-import-status {
+  margin: 0;
+}
+
+.vbg-custom-import-extracting {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 12px 8px 4px;
+  text-align: center;
+}
+
+.vbg-custom-import-extract-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.vbg-custom-import-dialog-root {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.vbg-custom-import-dialog-root > .vbg-custom-popover-scrim {
+  z-index: 0;
+  background: color-mix(in srgb, var(--vbg-gray-1000, #111) 45%, transparent);
+}
+
+.vbg-custom-import-dialog {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: min(480px, 100%);
+  max-height: min(80dvh, 640px);
+  padding: 10px;
+  border: 1px solid var(--vbg-gray-1000);
+  border-radius: 4px;
+  background: var(--vbg-background-100);
+  color: var(--vbg-text-primary);
+  box-shadow:
+    0 0 0 1px var(--vbg-gray-alpha-400),
+    0 4px 8px var(--vbg-gray-alpha-400),
+    0 16px 32px var(--vbg-gray-alpha-600),
+    0 32px 64px var(--vbg-gray-alpha-500);
+  overflow: hidden;
+}
+
+.vbg-custom-import-dialog-head {
+  display: grid;
+  gap: 2px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--vbg-border-default);
+}
+
+.vbg-custom-import-dialog-head .vbg-heading-16 {
+  margin: 0;
+}
+
+.vbg-custom-reset-dialog {
+  width: min(360px, 100%);
+  max-height: none;
+}
+
+.vbg-custom-reset-dialog .vbg-custom-popover-actions {
+  justify-content: flex-end;
+  padding-top: 4px;
+}
+
+.vbg-custom-import-choice {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--vbg-text-primary, #111);
+  cursor: pointer;
+}
+
+.vbg-custom-import-choice input {
+  margin-block-start: 2px;
+  flex-shrink: 0;
+}
+
+.vbg-custom-import-items {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  flex: 1 1 auto;
+  overflow: auto;
+  min-height: 0;
+}
+
+.vbg-custom-import-item {
+  display: flex;
+  gap: 8px;
+  align-items: start;
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--vbg-border-default);
+}
+
+.vbg-custom-import-items > li:last-child .vbg-custom-import-item {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.vbg-custom-import-item-body {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.vbg-custom-import-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 4px 10px;
+}
+
+.vbg-custom-import-value {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--vbg-text-primary, #111);
+}
+
+.vbg-custom-import-dismiss {
+  flex-shrink: 0;
+  min-width: 28px;
+  padding-inline: 6px;
+  line-height: 1;
+  font-size: 18px;
+}
+
+.vbg-custom-import-actions {
+  flex-shrink: 0;
+  justify-content: flex-end;
+  padding-top: 4px;
+  border-top: 1px solid var(--vbg-border-default);
+}
+
+/* Voice visualizer chrome: VoiceVisualizer.module.css (inset in Voice button). */
+

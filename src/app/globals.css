@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+/* Intentionally minimal. Report styling comes from vercel-brand.css + calculator.css. */
+
+/* Site-wide: no blue focus / info tokens leaking from vercel-brand.css */
+.vbg-report {
+  --vbg-focus: var(--vbg-gray-1000, #111);
+  --vbg-color-info: var(--vbg-text-secondary, #666);
+  accent-color: var(--vbg-gray-1000, #111);
+}
+
+.vbg-report :where(a, button, input, select, textarea, summary):focus,
+.vbg-report :where(a, button, input, select, textarea, summary):focus-visible {
+  outline-color: var(--vbg-gray-1000, #111);
+}

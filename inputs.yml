@@ -1,0 +1,372 @@
+- generic [active] [ref=f3e1]:
+  - generic [ref=f3e2]:
+    - banner [ref=f3e3]:
+      - generic [ref=f3e4]:
+        - heading "Retirement scenarios" [level=1] [ref=f3e6]
+        - generic [ref=f3e7]:
+          - generic [ref=f3e8]: Retire now · US
+          - generic [ref=f3e9]: 7.8% return · 3.0% infl · FL
+          - button "Copy JSON" [ref=f3e10] [cursor=pointer]
+    - generic [ref=f3e11]:
+      - generic [ref=f3e12]:
+        - paragraph [ref=f3e13]: Funds run out
+        - paragraph [ref=f3e14]: Age 93
+        - paragraph [ref=f3e15]: Start $1.54M · avg draw $117k/yr
+      - generic [ref=f3e16]:
+        - generic [ref=f3e17]:
+          - generic [ref=f3e18]:
+            - generic [ref=f3e19]: Age now
+            - spinbutton "Age now" [ref=f3e20]: "58"
+          - generic [ref=f3e21]:
+            - generic [ref=f3e22]: To age
+            - spinbutton "To age" [ref=f3e23]: "95"
+          - generic [ref=f3e24]:
+            - generic [ref=f3e25]: Inflation
+            - generic [ref=f3e26]:
+              - spinbutton "Inflation" [ref=f3e27]: "3"
+              - generic [ref=f3e28]: "%"
+          - generic [ref=f3e29]:
+            - generic [ref=f3e30]: Spending
+            - combobox "Spending" [ref=f3e31]:
+              - option "Fixed $/yr" [selected]
+              - option "% of start"
+          - generic [ref=f3e32]:
+            - generic [ref=f3e33]: Lifestyle $/yr
+            - generic [ref=f3e34]:
+              - generic [ref=f3e35]: $
+              - spinbutton "Lifestyle $/yr" [ref=f3e36]: "90000"
+          - generic [ref=f3e37]:
+            - generic [ref=f3e38]: State
+            - combobox "State" [ref=f3e39]:
+              - option "AL · 5.0%"
+              - option "AK · 0%"
+              - option "AZ · 2.5%"
+              - option "AR · 3.9%"
+              - option "CA · 9.3%"
+              - option "CO · 4.4%"
+              - option "CT · 7.0%"
+              - option "DE · 6.6%"
+              - option "DC · 8.5%"
+              - option "FL · 0%" [selected]
+              - option "GA · 5.4%"
+              - option "HI · 11.0%"
+              - option "ID · 5.8%"
+              - option "IL · 5.0%"
+              - option "IN · 3.0%"
+              - option "IA · 3.8%"
+              - option "KS · 5.7%"
+              - option "KY · 4.0%"
+              - option "LA · 4.3%"
+              - option "ME · 7.1%"
+              - option "MD · 5.8%"
+              - option "MA · 5.0%"
+              - option "MI · 4.3%"
+              - option "MN · 9.8%"
+              - option "MS · 4.7%"
+              - option "MO · 4.8%"
+              - option "MT · 5.9%"
+              - option "NE · 5.8%"
+              - option "NV · 0%"
+              - option "NH · 0%"
+              - option "NJ · 6.4%"
+              - option "NM · 5.9%"
+              - option "NY · 6.9%"
+              - option "NC · 4.3%"
+              - option "ND · 2.5%"
+              - option "OH · 3.5%"
+              - option "OK · 4.8%"
+              - option "OR · 9.9%"
+              - option "PA · 3.1%"
+              - option "RI · 6.0%"
+              - option "SC · 6.4%"
+              - option "SD · 0%"
+              - option "TN · 0%"
+              - option "TX · 0%"
+              - option "UT · 4.7%"
+              - option "VT · 8.8%"
+              - option "VA · 5.8%"
+              - option "WA · 0%"
+              - option "WV · 5.1%"
+              - option "WI · 7.6%"
+              - option "WY · 0%"
+          - generic [ref=f3e40]:
+            - paragraph [ref=f3e41]: Federal tax bracket
+            - paragraph [ref=f3e42]:
+              - text: Used only to gross-up Traditional / 401(k) withdrawals. Unsure? Keep
+              - strong [ref=f3e43]: 22%
+              - text: (typical for many retirees).
+            - group "Federal tax bracket" [ref=f3e44]:
+              - button "12%" [ref=f3e45] [cursor=pointer]
+              - button "22%" [ref=f3e46] [cursor=pointer]
+              - button "24%" [ref=f3e47] [cursor=pointer]
+              - button "32%" [ref=f3e48] [cursor=pointer]
+              - button "35%" [ref=f3e49] [cursor=pointer]
+            - paragraph [ref=f3e50]: "22%: common mid bracket — good default · with FL → combined 22.0%"
+          - generic [ref=f3e51]:
+            - checkbox "Gross-up pre-tax draws" [checked] [ref=f3e52]
+            - generic [ref=f3e53]: Gross-up pre-tax draws
+        - generic [ref=f3e54]:
+          - generic [ref=f3e55]:
+            - paragraph [ref=f3e56]: Wealth
+            - generic [ref=f3e57]:
+              - button "+ Taxable" [ref=f3e58] [cursor=pointer]
+              - button "+ Roth" [ref=f3e59] [cursor=pointer]
+              - button "+ Trad" [ref=f3e60] [cursor=pointer]
+              - button "+ 401k" [ref=f3e61] [cursor=pointer]
+              - button "+ 529" [ref=f3e62] [cursor=pointer]
+          - generic [ref=f3e63]:
+            - generic [ref=f3e64]: Type
+            - generic [ref=f3e65]: Name
+            - generic [ref=f3e66]: Balance
+            - generic [ref=f3e67]: Fund
+            - generic [ref=f3e68]: Rate
+            - generic [ref=f3e69]: 529 pays
+          - generic [ref=f3e70]:
+            - generic [ref=f3e71]:
+              - combobox "Type" [ref=f3e72]:
+                - option "529"
+                - option "Taxable" [selected]
+                - option "Roth"
+                - option "Traditional"
+                - option "401(k)"
+              - textbox "Name" [ref=f3e73]: Brokerage
+              - generic [ref=f3e74]:
+                - generic [ref=f3e75]: $
+                - spinbutton "Balance" [ref=f3e76]: "400000"
+              - combobox "Fund" [ref=f3e77]:
+                - option "Cash / T-bills (3.5%)"
+                - option "60/40 (5.5%)"
+                - option "80/20 (7%)" [selected]
+                - option "Heavy equity (8.5%)"
+                - option "S&P 500-ish (10%)"
+                - option "Custom rate"
+              - generic [ref=f3e78]: 7.0%
+              - generic [ref=f3e79]: —
+              - button "×" [ref=f3e80] [cursor=pointer]
+            - generic [ref=f3e81]:
+              - combobox "Type" [ref=f3e82]:
+                - option "529"
+                - option "Taxable"
+                - option "Roth" [selected]
+                - option "Traditional"
+                - option "401(k)"
+              - textbox "Name" [ref=f3e83]: Roth IRA
+              - generic [ref=f3e84]:
+                - generic [ref=f3e85]: $
+                - spinbutton "Balance" [ref=f3e86]: "350000"
+              - combobox "Fund" [ref=f3e87]:
+                - option "Cash / T-bills (3.5%)"
+                - option "60/40 (5.5%)"
+                - option "80/20 (7%)"
+                - option "Heavy equity (8.5%)"
+                - option "S&P 500-ish (10%)" [selected]
+                - option "Custom rate"
+              - generic [ref=f3e88]: 10.0%
+              - generic [ref=f3e89]: —
+              - button "×" [ref=f3e90] [cursor=pointer]
+            - generic [ref=f3e91]:
+              - combobox "Type" [ref=f3e92]:
+                - option "529"
+                - option "Taxable"
+                - option "Roth"
+                - option "Traditional" [selected]
+                - option "401(k)"
+              - textbox "Name" [ref=f3e93]: Traditional IRA
+              - generic [ref=f3e94]:
+                - generic [ref=f3e95]: $
+                - spinbutton "Balance" [ref=f3e96]: "650000"
+              - combobox "Fund" [ref=f3e97]:
+                - option "Cash / T-bills (3.5%)"
+                - option "60/40 (5.5%)"
+                - option "80/20 (7%)" [selected]
+                - option "Heavy equity (8.5%)"
+                - option "S&P 500-ish (10%)"
+                - option "Custom rate"
+              - generic [ref=f3e98]: 7.0%
+              - generic [ref=f3e99]: —
+              - button "×" [ref=f3e100] [cursor=pointer]
+            - generic [ref=f3e101]:
+              - combobox "Type" [ref=f3e102]:
+                - option "529" [selected]
+                - option "Taxable"
+                - option "Roth"
+                - option "Traditional"
+                - option "401(k)"
+              - textbox "Name" [ref=f3e103]: Kid 1 529
+              - generic [ref=f3e104]:
+                - generic [ref=f3e105]: $
+                - spinbutton "Balance" [ref=f3e106]: "80000"
+              - combobox "Fund" [ref=f3e107]:
+                - option "Cash / T-bills (3.5%)"
+                - option "60/40 (5.5%)"
+                - option "80/20 (7%)"
+                - option "Heavy equity (8.5%)" [selected]
+                - option "S&P 500-ish (10%)"
+                - option "Custom rate"
+              - generic [ref=f3e108]: 8.5%
+              - combobox "Pays for college" [ref=f3e109]:
+                - option "No link"
+                - option "Kid 1 college" [selected]
+                - option "Kid 2 college"
+              - button "×" [ref=f3e110] [cursor=pointer]
+            - generic [ref=f3e111]:
+              - combobox "Type" [ref=f3e112]:
+                - option "529" [selected]
+                - option "Taxable"
+                - option "Roth"
+                - option "Traditional"
+                - option "401(k)"
+              - textbox "Name" [ref=f3e113]: Kid 2 529
+              - generic [ref=f3e114]:
+                - generic [ref=f3e115]: $
+                - spinbutton "Balance" [ref=f3e116]: "60000"
+              - combobox "Fund" [ref=f3e117]:
+                - option "Cash / T-bills (3.5%)"
+                - option "60/40 (5.5%)"
+                - option "80/20 (7%)"
+                - option "Heavy equity (8.5%)" [selected]
+                - option "S&P 500-ish (10%)"
+                - option "Custom rate"
+              - generic [ref=f3e118]: 8.5%
+              - combobox "Pays for college" [ref=f3e119]:
+                - option "No link"
+                - option "Kid 1 college"
+                - option "Kid 2 college" [selected]
+              - button "×" [ref=f3e120] [cursor=pointer]
+        - generic [ref=f3e121]:
+          - generic [ref=f3e122]:
+            - paragraph [ref=f3e123]: College timeline
+            - button "Add" [ref=f3e124] [cursor=pointer]
+          - paragraph [ref=f3e125]: Drag to move · drag edges to resize · click a block for options
+          - generic [ref=f3e126]:
+            - generic [ref=f3e127]:
+              - generic [ref=f3e128]: Year
+              - generic [ref=f3e129]: Age
+              - generic [ref=f3e130]: Calendar
+            - generic [ref=f3e131]:
+              - generic [ref=f3e133]:
+                - generic [ref=f3e134]: Y0
+                - generic [ref=f3e135]: "58"
+                - generic [ref=f3e136]: "2026"
+              - generic [ref=f3e137]:
+                - generic [ref=f3e138]: Y5
+                - generic [ref=f3e139]: "63"
+                - generic [ref=f3e140]: "2031"
+              - generic [ref=f3e141]:
+                - generic [ref=f3e142]: Y10
+                - generic [ref=f3e143]: "68"
+                - generic [ref=f3e144]: "2036"
+              - generic [ref=f3e145]:
+                - generic [ref=f3e146]: Y15
+                - generic [ref=f3e147]: "73"
+                - generic [ref=f3e148]: "2041"
+              - generic [ref=f3e149]:
+                - generic [ref=f3e150]: Y20
+                - generic [ref=f3e151]: "78"
+                - generic [ref=f3e152]: "2046"
+              - generic [ref=f3e153]:
+                - generic [ref=f3e154]: Y25
+                - generic [ref=f3e155]: "83"
+                - generic [ref=f3e156]: "2051"
+              - generic [ref=f3e157]:
+                - generic [ref=f3e158]: Y30
+                - generic [ref=f3e159]: "88"
+                - generic [ref=f3e160]: "2056"
+              - generic [ref=f3e161]:
+                - generic [ref=f3e162]: Y35
+                - generic [ref=f3e163]: "93"
+                - generic [ref=f3e164]: "2061"
+              - generic [ref=f3e165]:
+                - generic [ref=f3e166]: Y37
+                - generic [ref=f3e167]: "95"
+                - generic [ref=f3e168]: "2063"
+              - generic [ref=f3e169]:
+                - button "Resize start of Kid 1 college"
+                - button "Kid 1 college. Drag to move, click for options." [ref=f3e170]:
+                  - generic [ref=f3e171]: Kid 1 college
+                  - generic [ref=f3e172]: $45k/yr · 4y
+                - button "Resize end of Kid 1 college"
+              - generic [ref=f3e173]:
+                - button "Resize start of Kid 2 college"
+                - button "Kid 2 college. Drag to move, click for options." [ref=f3e174]:
+                  - generic [ref=f3e175]: Kid 2 college
+                  - generic [ref=f3e176]: $45k/yr · 4y
+                - button "Resize end of Kid 2 college"
+        - generic [ref=f3e177]:
+          - generic [ref=f3e178]:
+            - paragraph [ref=f3e179]: Income
+            - button "Add" [ref=f3e180] [cursor=pointer]
+          - generic [ref=f3e182]:
+            - textbox "Income name" [ref=f3e183]: Social Security
+            - generic [ref=f3e184]:
+              - generic [ref=f3e185]: $
+              - spinbutton [ref=f3e186]: "36000"
+            - spinbutton "From age" [ref=f3e187]: "67"
+            - spinbutton "To age" [ref=f3e188]
+            - generic [ref=f3e189]:
+              - checkbox "Inflates" [checked] [ref=f3e190]
+              - generic [ref=f3e191]: Inflates
+            - button "×" [ref=f3e192] [cursor=pointer]
+        - generic [ref=f3e194]:
+          - generic [ref=f3e195]: Draw order
+          - combobox "Draw order" [ref=f3e196]:
+            - option "Taxable → pre-tax → Roth" [selected]
+            - option "Taxable → Roth → pre-tax"
+            - option "Pro-rata"
+        - group [ref=f3e197]:
+          - generic "Help & assumptions" [ref=f3e198] [cursor=pointer]
+      - generic [ref=f3e199]:
+        - generic [ref=f3e200]:
+          - generic [ref=f3e201]:
+            - paragraph [ref=f3e202]: Runway
+            - paragraph [ref=f3e203]: Runs out at 93
+            - paragraph [ref=f3e204]: 35 of 37 planned years
+          - generic [ref=f3e205]:
+            - paragraph [ref=f3e206]: Ending nest egg
+            - paragraph [ref=f3e207]: $0
+            - paragraph [ref=f3e208]: Depleted before horizon
+          - generic [ref=f3e209]:
+            - paragraph [ref=f3e210]: College covered by 529
+            - paragraph [ref=f3e211]: 45%
+            - paragraph [ref=f3e212]: $184k of $412k lifetime college
+          - generic [ref=f3e213]:
+            - paragraph [ref=f3e214]: Peak portfolio draw
+            - paragraph [ref=f3e215]: $222k
+            - paragraph [ref=f3e216]: Age 63
+          - generic [ref=f3e217]:
+            - paragraph [ref=f3e218]: Income starts
+            - paragraph [ref=f3e219]: Age 67
+            - paragraph [ref=f3e220]: 1 stream
+          - generic [ref=f3e221]:
+            - paragraph [ref=f3e222]: Pre-tax gross-up
+            - paragraph [ref=f3e223]: 22.0%
+            - paragraph [ref=f3e224]: "FL: fed 22.0% + state 0.0%"
+        - figure [ref=f3e225]:
+          - generic [ref=f3e226]:
+            - paragraph [ref=f3e227]: Balances
+            - generic [ref=f3e228]:
+              - generic [ref=f3e229]: Taxable
+              - generic [ref=f3e230]: Retirement
+              - generic [ref=f3e231]: "529"
+          - generic [ref=f3e232]:
+            - img "Balances" [ref=f3e233]:
+              - generic [ref=f3e237]: "58"
+              - generic [ref=f3e238]: "93"
+            - generic: Hover to inspect
+        - figure [ref=f3e239]:
+          - generic [ref=f3e240]:
+            - paragraph [ref=f3e241]: Cash flows
+            - generic [ref=f3e242]:
+              - generic [ref=f3e243]: Portfolio draw
+              - generic [ref=f3e244]: College
+              - generic [ref=f3e245]: Income
+          - generic [ref=f3e246]:
+            - img "Cash flows" [ref=f3e247]:
+              - generic [ref=f3e251]: "58"
+              - generic [ref=f3e252]: "93"
+            - generic: Hover to inspect
+        - generic [ref=f3e253]:
+          - button "Copy scenario JSON" [ref=f3e254] [cursor=pointer]
+          - button "Reset" [ref=f3e255] [cursor=pointer]
+  - button "Open Next.js Dev Tools" [ref=f3e261] [cursor=pointer]
+  - alert [ref=f3e265]
