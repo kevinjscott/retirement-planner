@@ -283,4 +283,26 @@ describe("integrity fixes", () => {
     const v = buildVerdict(scenario, []);
     expect(v.yearsOfRunway).toBeCloseTo(5, 5);
   });
+
+  test("depletion and ending balance ignore leftover 529 money", () => {
+    const scenario = {
+      ...base,
+      accounts: [{ ...newAccount("529", base), balance: 500_000 }],
+    };
+    const rows = project(scenario, YEAR);
+    const v = buildVerdict(scenario, rows);
+    expect(v.educationTotal).toBe(500_000);
+    expect(v.startTotal).toBe(0);
+    expect(v.depleted).toBe(true);
+  });
+
+  test("personal milestones stay inside the plan", () => {
+    const scenario = {
+      ...base,
+      age: 50,
+      endAge: 60,
+      personalMilestones: [{ id: "m", label: "Move", yearOffset: 40 }],
+    };
+    expect(normalizeTimeline(scenario).personalMilestones[0]!.yearOffset).toBe(10);
+  });
 });

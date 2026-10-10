@@ -215,6 +215,10 @@ export function normalizeTimeline(scenario: ScenarioInput): ScenarioInput {
         ? e
         : { ...e, startYear, durationYears };
     }),
+    personalMilestones: scenario.personalMilestones.map((m) => {
+      const yearOffset = clamp(m.yearOffset, 0, horizon);
+      return yearOffset === m.yearOffset ? m : { ...m, yearOffset };
+    }),
     incomes: scenario.incomes.map((i) => {
       const startAge = clamp(i.startAge, age, endAge);
       const stop =
@@ -435,7 +439,10 @@ export type Verdict = {
   runOutAge: number | null;
   endAge: number;
   endingToday: number;
+  /** Savings that fund retirement: everything except 529 balances. */
   startTotal: number;
+  /** 529 balances, kept apart because they are earmarked for education. */
+  educationTotal: number;
   avgDrawToday: number;
   taxesToday: number;
   /** Years of today's spend the starting balance covers with no growth. */
@@ -446,12 +453,16 @@ export function buildVerdict(
   scenario: ScenarioInput,
   rows: YearRow[],
 ): Verdict {
-  const depletedRow = rows.find((r) => r.total < 1 && r.year > 0);
+  const living = (r: YearRow) => r.total - r.education;
+  const depletedRow = rows.find((r) => living(r) < 1 && r.year > 0);
   const last = rows[rows.length - 1];
-  const startTotal = scenario.accounts.reduce((s, a) => s + a.balance, 0);
+  const educationTotal = scenario.accounts
+    .filter((a) => a.kind === "529")
+    .reduce((s, a) => s + a.balance, 0);
   const livingSavings = scenario.accounts
     .filter((a) => a.kind !== "529")
     .reduce((s, a) => s + a.balance, 0);
+  const startTotal = livingSavings;
   const draws = rows.filter((r) => r.withdrawn > 0);
   const avgDrawToday =
     draws.length === 0
@@ -473,9 +484,10 @@ export function buildVerdict(
     runOutAge: depletedRow ? depletedRow.age : null,
     endAge: scenario.endAge,
     endingToday: last
-      ? deflateToToday(last.total, scenario.inflation, last.year)
+      ? deflateToToday(living(last), scenario.inflation, last.year)
       : 0,
     startTotal,
+    educationTotal,
     avgDrawToday,
     taxesToday,
     yearsOfRunway: spend > 0 ? livingSavings / spend : null,

@@ -21,6 +21,7 @@ import {
   type ImportExtraction,
 } from "@/lib/scenario-import";
 import { dataUrlToBase64, pdfFileToImages } from "@/lib/pdf-pages";
+import { trapTab } from "@/lib/focus-trap";
 import type { ScenarioInput } from "@/lib/projection";
 
 type PendingImage = {
@@ -49,6 +50,7 @@ function fileToDataUrl(file: File): Promise<string> {
 export function ScenarioImport({ scenario, onApply, renderTrigger }: Props) {
   const titleId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [images, setImages] = useState<PendingImage[]>([]);
@@ -108,7 +110,22 @@ export function ScenarioImport({ scenario, onApply, renderTrigger }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement;
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab" && dialogRef.current) {
+        trapTab(e, dialogRef.current);
+        return;
+      }
       if (e.key !== "Escape") return;
       e.preventDefault();
       closeModal();
@@ -341,6 +358,8 @@ export function ScenarioImport({ scenario, onApply, renderTrigger }: Props) {
             onClick={closeModal}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             className="vbg-custom-import-dialog"
             role="dialog"
             aria-modal="true"

@@ -510,7 +510,7 @@ export function RetirementCalculator() {
     } catch {
       setSaveFailed(true);
     }
-    untouchedRef.current = null;
+    untouchedRef.current = DEFAULT_SCENARIO;
     setScenario(DEFAULT_SCENARIO, { history: "replace" });
     setResetOpen(false);
     setIntroPending(true);
@@ -823,8 +823,9 @@ export function RetirementCalculator() {
 
       {saveFailed ? (
         <p className="vbg-meta vbg-custom-save-warning" role="status">
-          This browser is blocking local storage, so your changes won&apos;t be
-          saved after you close the tab. Use Copy JSON to keep a copy.
+          Couldn&apos;t save to this browser (storage may be blocked or full), so
+          your changes won&apos;t be kept after you close the tab. Use Copy JSON
+          to keep a copy.
         </p>
       ) : null}
 
@@ -1595,7 +1596,7 @@ export function RetirementCalculator() {
         >
           <p>
             <strong>Your plan is live.</strong> Every answer is an editable field
-            here, and everything is saved in this browser.
+            here{saveFailed ? "." : ", and everything is saved in this browser."}
           </p>
           <div className="vbg-custom-handoff-actions">
             <button

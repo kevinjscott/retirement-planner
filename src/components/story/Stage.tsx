@@ -183,7 +183,11 @@ function stageSummary(props: StageProps): string {
         verdict.yearsOfRunway == null
           ? ""
           : ` Savings alone cover about ${verdict.yearsOfRunway.toFixed(1)} years of spending.`;
-      return `Saved today: ${compact(verdict.startTotal)}.${runway}`;
+      const education =
+        verdict.educationTotal > 0
+          ? ` Plus ${compact(verdict.educationTotal)} set aside in 529s.`
+          : "";
+      return `Saved for retirement: ${compact(verdict.startTotal)}.${education}${runway}`;
     }
     case "curve":
       return verdict.depleted && verdict.runOutAge != null
@@ -756,7 +760,7 @@ function PotsLayer({
       <div className="vbg-story-runway">
         <div className="vbg-story-runway-head">
           <span>
-            Spending {fmtMoney(scenario.annualSpend, true)} a year, savings alone last
+            Spending {fmtMoney(scenario.annualSpend, true)} a year, retirement savings alone last
           </span>
           <strong>
             <AnimatedNumber
@@ -804,7 +808,7 @@ function resampleCurve(
 ): CurvePoint[] {
   const pts: CurvePoint[] = rows.map((r) => ({
     age: r.age,
-    value: Math.max(0, deflateToToday(r.total, inflation, r.year)),
+    value: Math.max(0, deflateToToday(r.total - r.education, inflation, r.year)),
   }));
   const last = pts[pts.length - 1];
   if (last && last.age < endAge) {

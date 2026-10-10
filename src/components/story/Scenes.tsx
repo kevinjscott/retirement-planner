@@ -165,7 +165,7 @@ export function WelcomeScene({
       </Rise>
       <Rise>
         <p className="vbg-meta vbg-story-fineprint">
-          Your numbers stay in this browser.
+          Your plan is saved in this browser. If you use import, the notes or files you add are sent to an AI service to be read.
         </p>
       </Rise>
     </SceneShell>
@@ -220,7 +220,7 @@ export function YouScene({
             label="Plan through age"
             value={scenario.endAge}
             min={scenario.age + 1}
-            max={110}
+            max={Math.max(110, scenario.endAge)}
             onCommit={(endAge) => update((s) => setTimeline(s, { endAge }))}
           />
           .
@@ -228,7 +228,7 @@ export function YouScene({
         <StorySlider
           label="Plan through age"
           min={31}
-          max={110}
+          max={Math.max(110, scenario.endAge)}
           value={scenario.endAge}
           onChange={(endAge) => update((s) => setTimeline(s, { endAge }))}
         />
@@ -448,7 +448,10 @@ export function SavingsScene({
   const visible = POT_ORDER.filter(
     (p) => p !== "education" || showEducation || potBalance(scenario, p) > 0,
   );
-  const total = visible.reduce((s, p) => s + potBalance(scenario, p), 0);
+  const total = visible.reduce(
+    (s, p) => s + (p === "education" ? 0 : potBalance(scenario, p)),
+    0,
+  );
   const horizon = scenario.endAge - scenario.age;
   const runway = verdict.yearsOfRunway ?? 0;
 
@@ -555,7 +558,7 @@ export function SavingsScene({
           of your {horizon} years before it earns anything.
         </Narration>
       ) : (
-        <Narration>Add at least one account to keep going.</Narration>
+        <Narration>Add savings outside a 529 to keep going.</Narration>
       )}
     </SceneShell>
   );
@@ -700,10 +703,12 @@ export function CostsScene({ scenario, update, rows }: SceneProps) {
   const horizon = Math.max(1, scenario.endAge - scenario.age);
   const add = (kind: LifeEventKind) =>
     update((s) =>
-      normalize529Links({
-        ...s,
-        events: [...s.events, newStoryEvent(kind, s)],
-      }),
+      normalize529Links(
+        normalizeTimeline({
+          ...s,
+          events: [...s.events, newStoryEvent(kind, s)],
+        }),
+      ),
     );
   const patchEvent = (id: string, partial: Partial<LifeEvent>) =>
     update((s) =>
@@ -959,7 +964,7 @@ export function ResultScene({
                 <StorySlider
                   label="Plan through age"
                   min={scenario.age + 1}
-                  max={110}
+                  max={Math.max(110, scenario.endAge)}
                   value={scenario.endAge}
                   onChange={(endAge) => update((s) => setTimeline(s, { endAge }))}
                 />
