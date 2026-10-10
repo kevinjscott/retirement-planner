@@ -32,14 +32,14 @@ export const POT_COPY: Record<
   { title: string; taxNote: string; example: string }
 > = {
   taxable: {
-    title: "Brokerage and savings",
-    taxNote: "Taxed only on the gains when you sell",
-    example: "Brokerage, savings, CDs",
+    title: "Investments and savings",
+    taxNote: "Outside a retirement account. Taxed only on the gains when you sell",
+    example: "Checking, savings, CDs, stocks, bonds, mutual funds, ETFs",
   },
   pretax: {
-    title: "Traditional IRA and 401(k)",
-    taxNote: "Every dollar out is taxed as income",
-    example: "Pre-tax retirement accounts",
+    title: "401(k) and traditional IRA",
+    taxNote: "Every dollar you take out is taxed as income",
+    example: "Pre-tax retirement accounts, including 403(b) and SEP IRA",
   },
   roth: {
     title: "Roth IRA and Roth 401(k)",
@@ -471,3 +471,32 @@ export const INFLATION_HISTORY: { id: string; label: string; rate: number; note:
 
 /** Federal Reserve long-run goal, and a common planning default. */
 export const INFLATION_TARGET = 0.02;
+
+/**
+ * Log-style slider mapping so one track covers $0 to $20M without the low end
+ * (where most people sit) getting squeezed into the first few pixels.
+ * Position is 0..1; value is dollars.
+ */
+const LOG_CURVE = 8;
+
+export function logSliderValue(position: number, max: number): number {
+  const t = Math.max(0, Math.min(1, position));
+  if (t === 0) return 0;
+  const raw = (max * Math.expm1(LOG_CURVE * t)) / Math.expm1(LOG_CURVE);
+  if (t === 1) return max;
+  return roundNice(raw);
+}
+
+export function logSliderPosition(value: number, max: number): number {
+  if (value <= 0) return 0;
+  const v = Math.min(value, max);
+  return Math.log1p((v * Math.expm1(LOG_CURVE)) / max) / LOG_CURVE;
+}
+
+/** Round to a figure people would say out loud: 2 significant digits, $500 floor. */
+function roundNice(n: number): number {
+  if (n < 10_000) return Math.round(n / 500) * 500;
+  if (n < 100_000) return Math.round(n / 1_000) * 1_000;
+  const unit = 10 ** (Math.floor(Math.log10(n)) - 1);
+  return Math.round(n / unit) * unit;
+}

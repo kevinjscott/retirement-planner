@@ -17,6 +17,8 @@ import {
   normalize529Links,
   potBalance,
   setPotBalance,
+  logSliderPosition,
+  logSliderValue,
 } from "@/lib/story";
 
 const YEAR = 2026;
@@ -190,5 +192,29 @@ describe("life eras", () => {
   test("only returns ages inside the plan", () => {
     const eras = lifeEras({ age: 66, endAge: 80 });
     expect(eras.map((e) => e.id)).toEqual(["social-security", "rmd"]);
+  });
+});
+
+describe("log slider mapping", () => {
+  test("endpoints and monotonic", () => {
+    expect(logSliderValue(0, 20_000_000)).toBe(0);
+    expect(logSliderValue(1, 20_000_000)).toBe(20_000_000);
+    let prev = -1;
+    for (let i = 0; i <= 400; i++) {
+      const v = logSliderValue(i / 400, 20_000_000);
+      expect(v).toBeGreaterThanOrEqual(prev);
+      prev = v;
+    }
+  });
+  test("middle of the track is a few hundred thousand, not millions", () => {
+    const mid = logSliderValue(0.5, 20_000_000);
+    expect(mid).toBeGreaterThan(100_000);
+    expect(mid).toBeLessThan(1_000_000);
+  });
+  test("position inverts value", () => {
+    for (const v of [0, 25_000, 240_000, 1_380_000, 20_000_000]) {
+      const back = logSliderValue(logSliderPosition(v, 20_000_000), 20_000_000);
+      expect(Math.abs(back - v)).toBeLessThanOrEqual(Math.max(v * 0.08, 500));
+    }
   });
 });

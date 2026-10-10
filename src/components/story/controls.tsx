@@ -7,6 +7,9 @@ import {
   formatWithCommas,
 } from "@/components/DeferredNumberInput";
 import { SPRING_SNAPPY } from "@/components/story/primitives";
+import { logSliderPosition, logSliderValue } from "@/lib/story";
+
+const LOG_STEPS = 400;
 
 export function StorySlider({
   value,
@@ -17,6 +20,7 @@ export function StorySlider({
   label,
   valueText,
   marks,
+  scale = "linear",
 }: {
   value: number;
   min: number;
@@ -26,28 +30,39 @@ export function StorySlider({
   label: string;
   valueText?: string;
   marks?: { value: number; label: string }[];
+  scale?: "linear" | "log";
 }) {
+  const isLog = scale === "log";
   const span = Math.max(1e-9, max - min);
-  const pct = Math.max(0, Math.min(100, ((value - min) / span) * 100));
+  const pos = (v: number) =>
+    isLog ? logSliderPosition(v, max) : (v - min) / span;
+  const pct = Math.max(0, Math.min(100, pos(value) * 100));
   return (
     <div className="vbg-story-slider">
       <input
         type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={Math.max(min, Math.min(max, value))}
+        min={isLog ? 0 : min}
+        max={isLog ? LOG_STEPS : max}
+        step={isLog ? 1 : step}
+        value={
+          isLog
+            ? Math.round(pos(value) * LOG_STEPS)
+            : Math.max(min, Math.min(max, value))
+        }
         aria-label={label}
         aria-valuetext={valueText}
         style={{ "--fill": `${pct}%` } as CSSProperties}
-        onChange={(e) => onChange(Number(e.target.value))}
+        onChange={(e) => {
+          const n = Number(e.target.value);
+          onChange(isLog ? logSliderValue(n / LOG_STEPS, max) : n);
+        }}
       />
       {marks ? (
         <div className="vbg-story-slider-marks" aria-hidden="true">
           {marks.map((m) => (
             <span
               key={m.value}
-              style={{ left: `${((m.value - min) / span) * 100}%` }}
+              style={{ left: `${pos(m.value) * 100}%` }}
             >
               {m.label}
             </span>

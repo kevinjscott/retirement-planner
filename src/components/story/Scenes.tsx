@@ -417,11 +417,30 @@ export function SpendScene({
 
 /* ------------------------------------------------------------------ */
 
-const POT_SLIDER: Record<Pot, { max: number; step: number }> = {
-  taxable: { max: 2_000_000, step: 5_000 },
-  pretax: { max: 2_000_000, step: 5_000 },
-  roth: { max: 1_000_000, step: 5_000 },
-  education: { max: 250_000, step: 1_000 },
+function BIG_MARKS() {
+  return [
+    { value: 10_000, label: "$10k" },
+    { value: 100_000, label: "$100k" },
+    { value: 1_000_000, label: "$1M" },
+    { value: 10_000_000, label: "$10M" },
+  ];
+}
+
+const POT_SLIDER: Record<
+  Pot,
+  { max: number; marks: { value: number; label: string }[] }
+> = {
+  taxable: { max: 20_000_000, marks: BIG_MARKS() },
+  pretax: { max: 20_000_000, marks: BIG_MARKS() },
+  roth: { max: 20_000_000, marks: BIG_MARKS() },
+  education: {
+    max: 2_000_000,
+    marks: [
+      { value: 10_000, label: "$10k" },
+      { value: 100_000, label: "$100k" },
+      { value: 1_000_000, label: "$1M" },
+    ],
+  },
 };
 
 export function SavingsScene({
@@ -450,7 +469,6 @@ export function SavingsScene({
         {visible.map((pot) => {
           const balance = potBalance(scenario, pot);
           const cfg = POT_SLIDER[pot];
-          const max = balance > cfg.max ? niceCeil(balance * 1.1) : cfg.max;
           const accounts = scenario.accounts.filter((a) =>
             pot === "pretax"
               ? a.kind === "traditional" || a.kind === "401k"
@@ -470,6 +488,7 @@ export function SavingsScene({
                 <div className="vbg-story-pot-head">
                   <span>
                     <strong>{POT_COPY[pot].title}</strong>
+                    <em>{POT_COPY[pot].example}</em>
                     <em>{POT_COPY[pot].taxNote}</em>
                   </span>
                   <InlineNumber
@@ -486,8 +505,9 @@ export function SavingsScene({
                   label={`${POT_COPY[pot].title} balance`}
                   valueText={money(balance)}
                   min={0}
-                  max={max}
-                  step={cfg.step}
+                  max={cfg.max}
+                  scale="log"
+                  marks={cfg.marks}
                   value={balance}
                   onChange={(n) => update((s) => setPotBalance(s, pot, n))}
                 />
