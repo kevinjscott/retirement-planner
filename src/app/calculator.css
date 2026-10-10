@@ -2938,3 +2938,10 @@ body.is-modal-open {
   display: flex;
   gap: var(--vbg-space-2);
 }
+
+.vbg-custom-save-warning {
+  margin: 0;
+  padding: var(--vbg-space-3) var(--vbg-space-6);
+  background: var(--vbg-amber-100, #fff4d6);
+  color: var(--vbg-text-primary);
+}

@@ -126,20 +126,6 @@ export function useElementSize(ref: RefObject<HTMLElement | null>) {
   return size;
 }
 
-/**
- * Chart ceiling that holds still through small edits, then snaps to the next
- * round number, so a dragged slider changes bar heights instead of rescaling
- * every bar by the same factor.
- */
-export function useStableCeiling(need: number): number {
-  const [held, setHeld] = useState(() => niceCeil(need * 1.08));
-  if (need > held * 0.97 || need < held * 0.45) {
-    const next = niceCeil(need * 1.08);
-    if (next !== held) setHeld(next);
-  }
-  return held;
-}
-
 export function niceCeil(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return 1;
   const exp = Math.floor(Math.log10(n));
@@ -147,16 +133,4 @@ export function niceCeil(n: number): number {
   const f = n / base;
   const step = f <= 1 ? 1 : f <= 1.5 ? 1.5 : f <= 2 ? 2 : f <= 3 ? 3 : f <= 5 ? 5 : f <= 7.5 ? 7.5 : 10;
   return step * base;
-}
-
-export function usePrefersReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(false);
-  useEffect(() => {
-    const q = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const read = () => setReduced(q.matches);
-    read();
-    q.addEventListener("change", read);
-    return () => q.removeEventListener("change", read);
-  }, []);
-  return reduced;
 }

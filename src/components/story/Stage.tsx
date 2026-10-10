@@ -1,6 +1,11 @@
 "use client";
 
-import { AnimatePresence, animate, motion } from "framer-motion";
+import {
+  AnimatePresence,
+  animate,
+  motion,
+  useReducedMotion,
+} from "framer-motion";
 import {
   useEffect,
   useMemo,
@@ -12,8 +17,8 @@ import {
   AnimatedNumber,
   EASE_OUT,
   SPRING_SOFT,
+  niceCeil,
   useElementSize,
-  useStableCeiling,
 } from "@/components/story/primitives";
 import { chartSeriesColor } from "@/lib/chart-colors";
 import {
@@ -85,6 +90,8 @@ export function Stage(props: StageProps) {
   const ready = width > 40 && height > 40;
 
   return (
+    <>
+    <p className="vbg-story-sr">{stageSummary(props)}</p>
     <div className="vbg-story-stage" ref={ref} aria-hidden="true">
       <AnimatePresence initial={false}>
         {ready ? (
@@ -107,7 +114,6 @@ export function Stage(props: StageProps) {
                 inflation={props.exampleInflation}
                 depletedAge={null}
                 ambient
-                onDone={() => {}}
               />
             ) : null}
             {layer === "lifeline" ? (
@@ -156,7 +162,38 @@ export function Stage(props: StageProps) {
         ) : null}
       </AnimatePresence>
     </div>
+    </>
   );
+}
+
+/** Text twin of the chart, since the drawing itself is hidden from assistive tech. */
+function stageSummary(props: StageProps): string {
+  const { scenario, bars, verdict, calendarStartYear } = props;
+  switch (LAYER_OF[props.scene]) {
+    case "bars": {
+      const first = bars[0];
+      const last = bars[bars.length - 1];
+      if (!first || !last) return "";
+      const need = (b: YearBar) =>
+        compact(b.living + (props.scene === "costs" ? b.events : 0));
+      return `Yearly cost of living, ${need(first)} at age ${first.age} in ${calendarStartYear} dollars, rising to ${need(last)} at age ${last.age} in ${calendarStartYear + last.year} dollars.`;
+    }
+    case "pots": {
+      const runway =
+        verdict.yearsOfRunway == null
+          ? ""
+          : ` Savings alone cover about ${verdict.yearsOfRunway.toFixed(1)} years of spending.`;
+      return `Saved today: ${compact(verdict.startTotal)}.${runway}`;
+    }
+    case "curve":
+      return verdict.depleted && verdict.runOutAge != null
+        ? `Projected balance reaches zero at age ${verdict.runOutAge}, before the plan ends at age ${scenario.endAge}.`
+        : `Projected balance lasts through age ${scenario.endAge}, ending near ${compact(verdict.endingToday)} in today's dollars.`;
+    case "lifeline":
+      return `Plan runs from age ${scenario.age} through age ${scenario.endAge}.`;
+    default:
+      return "";
+  }
 }
 
 /* ------------------------------------------------------------------ */
@@ -180,7 +217,7 @@ function LifelineLayer({
   const pad = Math.max(28, Math.min(48, width * 0.06));
   const x = (a: number) =>
     pad + ((a - LIFE_MIN) / (LIFE_MAX - LIFE_MIN)) * (width - pad * 2);
-  const cy = Math.round(height * (height < 320 ? 0.56 : 0.56));
+  const cy = Math.round(height * 0.56);
   const eras = lifeEras(scenario);
   const years = scenario.endAge - scenario.age;
   const ticks = [30, 40, 50, 60, 70, 80, 90, 100, 110];
@@ -399,7 +436,7 @@ function BarsLayer({
   const plotW = width - padX * 2;
   const plotH = Math.max(40, height - top - bottom);
   const n = bars.length;
-  const slot = plotW / n;
+  const slot = plotW / Math.max(1, n);
   const bw = Math.max(2, slot * 0.7);
   const base = top + plotH;
 
@@ -421,7 +458,7 @@ function BarsLayer({
     [bars, showIncome, showEvents],
   );
   const maxNeed = Math.max(1, ...segs.map((s) => s.need));
-  const yMax = useStableCeiling(maxNeed);
+  const yMax = niceCeil(maxNeed * 1.08);
   const scale = (v: number) => Math.max(0.01, (v / yMax) * plotH);
 
   const first = bars[0];
@@ -770,7 +807,10 @@ function resampleCurve(
     value: Math.max(0, deflateToToday(r.total, inflation, r.year)),
   }));
   const last = pts[pts.length - 1];
-  if (last && last.age < endAge) pts.push({ age: endAge, value: 0 });
+  if (last && last.age < endAge) {
+    pts.push({ age: Math.min(endAge, last.age + 0.01), value: 0 });
+    pts.push({ age: endAge, value: 0 });
+  }
   if (pts.length === 0) return [];
   const out: CurvePoint[] = [];
   for (let i = 0; i < CURVE_POINTS; i++) {
@@ -805,12 +845,13 @@ function CurveLayer({
   inflation: number;
   depletedAge: number | null;
   ambient?: boolean;
-  onDone: () => void;
+  onDone?: () => void;
 }) {
   const pts = useMemo(
     () => resampleCurve(rows, inflation, startAge, endAge),
     [rows, inflation, startAge, endAge],
   );
+  const reduced = useReducedMotion() ?? false;
   const [prog, setProg] = useState(0);
   const [playing, setPlaying] = useState(true);
   const doneRef = useRef(onDone);
@@ -820,17 +861,17 @@ function CurveLayer({
 
   useEffect(() => {
     const controls = animate(0, 1, {
-      duration: ambient ? 3.2 : 3.4,
-      delay: ambient ? 0.6 : 0.5,
+      duration: reduced ? 0.01 : ambient ? 3.2 : 3.4,
+      delay: reduced ? 0 : ambient ? 0.6 : 0.5,
       ease: [0.45, 0, 0.25, 1],
       onUpdate: setProg,
       onComplete: () => {
         setPlaying(false);
-        doneRef.current();
+        doneRef.current?.();
       },
     });
     return () => controls.stop();
-  }, [ambient]);
+  }, [ambient, reduced]);
 
   const padL = ambient ? 24 : 64;
   const padR = 28;
@@ -839,7 +880,7 @@ function CurveLayer({
   const plotW = width - padL - padR;
   const plotH = Math.max(40, height - padT - padB);
   const maxV = Math.max(1, ...pts.map((p) => p.value));
-  const yMax = useStableCeiling(maxV);
+  const yMax = niceCeil(maxV * 1.08);
   const px = (age: number) =>
     padL + ((age - startAge) / Math.max(1, endAge - startAge)) * plotW;
   const py = (v: number) => padT + plotH - (v / yMax) * plotH;
@@ -933,7 +974,9 @@ function CurveLayer({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1, d: area }}
           transition={{
-            opacity: { duration: 1.2, delay: ambient ? 1.2 : 1.4 },
+            opacity: reduced
+              ? { duration: 0 }
+              : { duration: 1.2, delay: ambient ? 1.2 : 1.4 },
             d: SPRING_SOFT,
           }}
           style={{ fill: lineColor }}
@@ -948,11 +991,13 @@ function CurveLayer({
           initial={{ pathLength: 0 }}
           animate={{ pathLength: 1, d: line }}
           transition={{
-            pathLength: {
-              duration: ambient ? 3.2 : 3.4,
-              delay: ambient ? 0.6 : 0.5,
-              ease: [0.45, 0, 0.25, 1],
-            },
+            pathLength: reduced
+              ? { duration: 0 }
+              : {
+                  duration: ambient ? 3.2 : 3.4,
+                  delay: ambient ? 0.6 : 0.5,
+                  ease: [0.45, 0, 0.25, 1],
+                },
             d: SPRING_SOFT,
           }}
         />

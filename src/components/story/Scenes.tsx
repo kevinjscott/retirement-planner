@@ -42,9 +42,11 @@ import {
   newIncome,
   newStoryEvent,
   normalize529Links,
+  normalizeTimeline,
   potBalance,
   riskRate,
   setPotBalance,
+  setTimeline,
   type IncomePreset,
   type Pot,
   type RiskStyle,
@@ -113,7 +115,7 @@ function Narration({ children }: { children: ReactNode }) {
   return (
     <Rise className="vbg-story-narration">
       <span className="vbg-story-narration-mark" aria-hidden="true" />
-      <p aria-live="polite">{children}</p>
+      <p>{children}</p>
     </Rise>
   );
 }
@@ -199,13 +201,7 @@ export function YouScene({
             value={scenario.age}
             min={30}
             max={90}
-            onCommit={(age) =>
-              update((s) => ({
-                ...s,
-                age,
-                endAge: Math.max(s.endAge, age + 1),
-              }))
-            }
+            onCommit={(age) => update((s) => setTimeline(s, { age }))}
           />{" "}
           today.
         </p>
@@ -214,9 +210,7 @@ export function YouScene({
           min={30}
           max={90}
           value={scenario.age}
-          onChange={(age) =>
-            update((s) => ({ ...s, age, endAge: Math.max(s.endAge, age + 1) }))
-          }
+          onChange={(age) => update((s) => setTimeline(s, { age }))}
         />
       </Rise>
       <Rise className="vbg-story-sentence">
@@ -227,7 +221,7 @@ export function YouScene({
             value={scenario.endAge}
             min={scenario.age + 1}
             max={110}
-            onCommit={(endAge) => update((s) => ({ ...s, endAge }))}
+            onCommit={(endAge) => update((s) => setTimeline(s, { endAge }))}
           />
           .
         </p>
@@ -236,9 +230,7 @@ export function YouScene({
           min={31}
           max={110}
           value={scenario.endAge}
-          onChange={(endAge) =>
-            update((s) => ({ ...s, endAge: Math.max(endAge, s.age + 1) }))
-          }
+          onChange={(endAge) => update((s) => setTimeline(s, { endAge }))}
         />
       </Rise>
       {eras.length > 0 ? (
@@ -304,7 +296,7 @@ export function SpendScene({
         <StorySlider
           label="Annual spending"
           valueText={`${money(scenario.annualSpend)} a year`}
-          min={20_000}
+          min={0}
           max={max}
           step={1_000}
           value={scenario.annualSpend}
@@ -497,7 +489,7 @@ export function SavingsScene({
                     prefix="$"
                     value={balance}
                     min={0}
-                    max={50_000_000}
+                    max={cfg.max}
                     onCommit={(n) => update((s) => setPotBalance(s, pot, n))}
                   />
                 </div>
@@ -687,14 +679,14 @@ export function IncomeScene({ scenario, update, bars }: SceneProps) {
           "With no income, savings pay for everything. Add what applies, or move on."
         ) : (
           <>
-            By age {last?.age}, income pays for{" "}
+            At age {last?.age}, income pays for{" "}
             <strong>
               <AnimatedNumber
                 value={coverage * 100}
                 format={(n) => `${Math.round(n)}%`}
               />
             </strong>{" "}
-            of what you spend.
+            of what you spend that year.
           </>
         )}
       </Narration>
@@ -714,10 +706,12 @@ export function CostsScene({ scenario, update, rows }: SceneProps) {
       }),
     );
   const patchEvent = (id: string, partial: Partial<LifeEvent>) =>
-    update((s) => ({
-      ...s,
-      events: s.events.map((e) => (e.id === id ? { ...e, ...partial } : e)),
-    }));
+    update((s) =>
+      normalizeTimeline({
+        ...s,
+        events: s.events.map((e) => (e.id === id ? { ...e, ...partial } : e)),
+      }),
+    );
   const totalCost = rows.reduce((s, r) => s + r.eventCost, 0);
   const college = rows.reduce((s, r) => s + r.collegeCost, 0);
   const from529 = rows.reduce((s, r) => s + r.eventFrom529, 0);
@@ -927,7 +921,7 @@ export function ResultScene({
                 </label>
                 <StorySlider
                   label="Annual spending"
-                  min={20_000}
+                  min={0}
                   max={Math.max(300_000, niceCeil(scenario.annualSpend * 1.1))}
                   step={1_000}
                   value={scenario.annualSpend}
@@ -967,7 +961,7 @@ export function ResultScene({
                   min={scenario.age + 1}
                   max={110}
                   value={scenario.endAge}
-                  onChange={(endAge) => update((s) => ({ ...s, endAge }))}
+                  onChange={(endAge) => update((s) => setTimeline(s, { endAge }))}
                 />
               </div>
             </div>

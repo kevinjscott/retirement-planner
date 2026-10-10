@@ -1,6 +1,7 @@
 import { describe, expect, test } from "bun:test";
 import {
   DEFAULT_SCENARIO,
+  newAccount,
   project,
   type ScenarioInput,
 } from "@/lib/projection";
@@ -15,6 +16,8 @@ import {
   newIncome,
   newStoryEvent,
   normalize529Links,
+  normalizeTimeline,
+  setTimeline,
   potBalance,
   setPotBalance,
   logSliderPosition,
@@ -216,5 +219,68 @@ describe("log slider mapping", () => {
       const back = logSliderValue(logSliderPosition(v, 20_000_000), 20_000_000);
       expect(Math.abs(back - v)).toBeLessThanOrEqual(Math.max(v * 0.08, 500));
     }
+  });
+});
+
+describe("integrity fixes", () => {
+  const base = { ...DEFAULT_SCENARIO };
+
+  test("setPotBalance keeps the exact total across uneven accounts", () => {
+    const withTwo = {
+      ...base,
+      accounts: [
+        { ...newAccount("traditional", base), balance: 333 },
+        { ...newAccount("401k", base), balance: 667 },
+      ],
+    };
+    for (const target of [1, 7, 1_001, 123_457]) {
+      expect(potBalance(setPotBalance(withTwo, "pretax", target), "pretax")).toBe(
+        target,
+      );
+    }
+  });
+
+  test("529 links only target college events, and clear without any", () => {
+    const wedding = { ...newStoryEvent("wedding", base), id: "w1" };
+    const account = { ...newAccount("529", base), balance: 10_000, linkedEventId: "w1" };
+    const noCollege = normalize529Links({ ...base, events: [wedding], accounts: [account] });
+    expect(noCollege.accounts[0]!.linkedEventId).toBeNull();
+
+    const college = { ...newStoryEvent("college", base), id: "c1" };
+    const relinked = normalize529Links({
+      ...base,
+      events: [wedding, college],
+      accounts: [account],
+    });
+    expect(relinked.accounts[0]!.linkedEventId).toBe("c1");
+  });
+
+  test("timeline changes pull events and income back inside the plan", () => {
+    const scenario = {
+      ...base,
+      age: 50,
+      endAge: 95,
+      events: [{ ...newStoryEvent("college", base), startYear: 30, durationYears: 10 }],
+      incomes: [{ ...newIncome("social-security", base), startAge: 90, endAge: 95 }],
+    };
+    const shorter = setTimeline(scenario, { endAge: 70 });
+    const ev = shorter.events[0]!;
+    expect(ev.startYear + ev.durationYears).toBeLessThanOrEqual(20);
+    expect(shorter.incomes[0]!.startAge).toBeLessThanOrEqual(70);
+    expect(normalizeTimeline({ ...scenario, endAge: 40 }).endAge).toBe(51);
+  });
+
+  test("runway ignores 529 balances", () => {
+    const scenario = {
+      ...base,
+      spendMode: "fixed" as const,
+      annualSpend: 100_000,
+      accounts: [
+        { ...newAccount("taxable", base), balance: 500_000 },
+        { ...newAccount("529", base), balance: 500_000 },
+      ],
+    };
+    const v = buildVerdict(scenario, []);
+    expect(v.yearsOfRunway).toBeCloseTo(5, 5);
   });
 });

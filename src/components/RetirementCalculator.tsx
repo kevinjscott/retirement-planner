@@ -72,6 +72,7 @@ import {
 } from "@/lib/us-taxes";
 
 const STORAGE_KEY = "retirement-scenarios:v2";
+const STORY_SKIPPED_KEY = "retirement-scenarios:story-skipped";
 
 const panelVariants: Variants = {
   hidden: { opacity: 0, y: 24 },
@@ -230,11 +231,13 @@ function NetAssetsSummary({
   );
 }
 
-function hasSavedScenario(): boolean {
+/** True when the guided setup has nothing to protect: no saved plan and no earlier skip. */
+function isFirstVisit(): boolean {
   try {
     return (
-      localStorage.getItem(STORAGE_KEY) != null ||
-      localStorage.getItem("retirement-scenarios:v1") != null
+      localStorage.getItem(STORAGE_KEY) == null &&
+      localStorage.getItem("retirement-scenarios:v1") == null &&
+      localStorage.getItem(STORY_SKIPPED_KEY) == null
     );
   } catch {
     return true;
@@ -416,12 +419,14 @@ export function RetirementCalculator() {
   const [story, setStory] = useState<{ mode: StoryMode } | null>(null);
   const [introPending, setIntroPending] = useState(false);
   const [handoffNote, setHandoffNote] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const untouchedRef = useRef<ScenarioInput | null>(null);
   const resetTitleId = useId();
   const undoShortcut = isMacPlatform() ? "⌘Z" : "Ctrl+Z";
   const redoShortcut = isMacPlatform() ? "⌘⇧Z" : "Ctrl+Shift+Z";
 
   useEffect(() => {
-    const firstVisit = !hasSavedScenario();
+    const firstVisit = isFirstVisit();
     setScenario(loadScenario(), { history: "replace" });
     if (firstVisit) {
       setStory({ mode: "first" });
@@ -434,11 +439,20 @@ export function RetirementCalculator() {
     if (!hydrated) return;
     // A first-time visitor hasn't chosen anything yet; don't save the example as theirs.
     if (story?.mode === "first") return;
+    // Skipped the setup without changing anything: the example plan isn't theirs to save.
+    if (untouchedRef.current === scenario) return;
     const federalRate = resolveFederalRate(scenario);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...scenario, federalRate }),
-    );
+    let failed = false;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ ...scenario, federalRate }),
+      );
+    } catch {
+      failed = true;
+    }
+    const t = window.setTimeout(() => setSaveFailed(failed), 0);
+    return () => window.clearTimeout(t);
   }, [scenario, hydrated, story]);
 
   useEffect(() => {
@@ -489,8 +503,14 @@ export function RetirementCalculator() {
   }, [undo, redo]);
 
   const confirmReset = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("retirement-scenarios:v1");
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("retirement-scenarios:v1");
+      localStorage.removeItem(STORY_SKIPPED_KEY);
+    } catch {
+      setSaveFailed(true);
+    }
+    untouchedRef.current = null;
     setScenario(DEFAULT_SCENARIO, { history: "replace" });
     setResetOpen(false);
     setIntroPending(true);
@@ -507,7 +527,15 @@ export function RetirementCalculator() {
   const skipStory = () => {
     const mode = story?.mode;
     setStory(null);
-    if (mode === "first") setHandoffNote(true);
+    if (mode === "first") {
+      untouchedRef.current = scenario;
+      try {
+        localStorage.setItem(STORY_SKIPPED_KEY, "1");
+      } catch {
+        setSaveFailed(true);
+      }
+      setHandoffNote(true);
+    }
   };
 
   const patch = (partial: Partial<ScenarioInput>) =>
@@ -792,6 +820,13 @@ export function RetirementCalculator() {
           </div>
         </div>
       </header>
+
+      {saveFailed ? (
+        <p className="vbg-meta vbg-custom-save-warning" role="status">
+          This browser is blocking local storage, so your changes won&apos;t be
+          saved after you close the tab. Use Copy JSON to keep a copy.
+        </p>
+      ) : null}
 
       {resetOpen ? (
         <div className="vbg-custom-import-dialog-root">

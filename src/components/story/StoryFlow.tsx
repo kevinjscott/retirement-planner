@@ -44,6 +44,9 @@ export type StoryMode = "first" | "replay";
 
 const CALENDAR_START = new Date().getFullYear();
 
+const FOCUSABLE =
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
 const CHAPTERS: { id: SceneId; label: string }[] = [
   { id: "you", label: "You" },
   { id: "spend", label: "Lifestyle" },
@@ -111,6 +114,7 @@ export function StoryFlow({
   const [activePot, setActivePot] = useState<Pot | null>(null);
   const [played, setPlayed] = useState(false);
   const copyRef = useRef<HTMLElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
 
   const scene = SCENE_ORDER[sceneIndex]!;
 
@@ -158,15 +162,50 @@ export function StoryFlow({
   }, [scene]);
 
   useEffect(() => {
+    const opener = document.activeElement;
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, []);
+
+  useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      const t = e.target instanceof HTMLElement ? e.target : null;
+      if (e.key === "Tab") {
+        const dialog = dialogRef.current;
+        if (!dialog || t?.closest(".vbg-custom-import-dialog-root")) return;
+        const stops = Array.from(
+          dialog.querySelectorAll<HTMLElement>(FOCUSABLE),
+        ).filter((el) => el.getClientRects().length > 0);
+        if (stops.length === 0) {
+          e.preventDefault();
+          dialog.focus();
+          return;
+        }
+        const first = stops[0]!;
+        const last = stops[stops.length - 1]!;
+        const active = document.activeElement;
+        if (e.shiftKey && (active === first || active === dialog)) {
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && active === last) {
+          e.preventDefault();
+          first.focus();
+        } else if (!dialog.contains(active)) {
+          e.preventDefault();
+          first.focus();
+        }
+        return;
+      }
       if (e.key === "Escape" && mode === "replay") {
-        const t = e.target as HTMLElement | null;
         if (t?.closest(".vbg-custom-import-dialog-root")) return;
         onSkip();
         return;
       }
       if (e.key !== "Enter" || e.defaultPrevented) return;
-      const t = e.target as HTMLElement | null;
       if (!t) return;
       if (t.closest("input, select, textarea, button, a, [role=radio]")) return;
       if (scene === "welcome") return;
@@ -191,6 +230,8 @@ export function StoryFlow({
   return (
     <MotionConfig reducedMotion="user">
       <motion.div
+        ref={dialogRef}
+        tabIndex={-1}
         className="vbg-story"
         role="dialog"
         aria-modal="true"
@@ -277,7 +318,7 @@ export function StoryFlow({
                       }}
                       onSkip={onSkip}
                       importSlot={importSlot({
-                        scenario: BLANK_START_SCENARIO,
+                        scenario: mode === "replay" ? draft : BLANK_START_SCENARIO,
                         adopt: (n) => {
                           setDraft(n);
                           setImported(true);

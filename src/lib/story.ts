@@ -33,7 +33,7 @@ export const POT_COPY: Record<
 > = {
   taxable: {
     title: "Investments and savings",
-    taxNote: "Outside a retirement account. Taxed only on the gains when you sell",
+    taxNote: "Outside a retirement account. Interest, dividends and gains from selling are taxed",
     example: "Checking, savings, CDs, stocks, bonds, mutual funds, ETFs",
   },
   pretax: {
@@ -43,12 +43,12 @@ export const POT_COPY: Record<
   },
   roth: {
     title: "Roth IRA and Roth 401(k)",
-    taxNote: "Withdrawals come out tax-free",
+    taxNote: "Qualified withdrawals come out tax-free",
     example: "After-tax retirement accounts",
   },
   education: {
     title: "529 college savings",
-    taxNote: "Tax-free when spent on college",
+    taxNote: "Tax-free when spent on qualified education costs",
     example: "Set aside for tuition",
   },
 };
@@ -92,17 +92,30 @@ export function setPotBalance(
     });
   }
   const current = existing.reduce((s, a) => s + a.balance, 0);
-  const ids = new Set(existing.map((a) => a.id));
-  const first = existing[0]!.id;
+  if (current <= 0) {
+    const first = existing[0]!.id;
+    return {
+      ...scenario,
+      accounts: scenario.accounts.map((a) =>
+        a.id === first ? { ...a, balance: next } : a,
+      ),
+    };
+  }
+  const lastId = existing[existing.length - 1]!.id;
+  const share = new Map<string, number>();
+  let assigned = 0;
+  for (const a of existing) {
+    if (a.id === lastId) continue;
+    const part = Math.round((a.balance / current) * next);
+    share.set(a.id, part);
+    assigned += part;
+  }
+  share.set(lastId, Math.max(0, next - assigned));
   return {
     ...scenario,
-    accounts: scenario.accounts.map((a) => {
-      if (!ids.has(a.id)) return a;
-      if (current <= 0) {
-        return a.id === first ? { ...a, balance: next } : a;
-      }
-      return { ...a, balance: Math.round((a.balance / current) * next) };
-    }),
+    accounts: scenario.accounts.map((a) =>
+      share.has(a.id) ? { ...a, balance: share.get(a.id)! } : a,
+    ),
   };
 }
 
@@ -150,28 +163,79 @@ export function applyRiskStyle(
   };
 }
 
-/** Link orphaned 529s to a college event, one each where possible. */
+/**
+ * Keep every 529 pointed at a real college event: re-link orphaned or
+ * mis-targeted accounts (one each where possible) and clear links when no
+ * college event exists.
+ */
 export function normalize529Links(scenario: ScenarioInput): ScenarioInput {
   const colleges = scenario.events.filter((e) => isCollegeEvent(e));
-  if (colleges.length === 0) return scenario;
+  const collegeIds = new Set(colleges.map((e) => e.id));
   const taken = new Set(
     scenario.accounts
-      .filter((a) => a.kind === "529" && a.linkedEventId)
+      .filter(
+        (a) =>
+          a.kind === "529" &&
+          a.linkedEventId != null &&
+          collegeIds.has(a.linkedEventId),
+      )
       .map((a) => a.linkedEventId as string),
   );
   const free = colleges.filter((e) => !taken.has(e.id));
   let changed = false;
   const accounts = scenario.accounts.map((a) => {
     if (a.kind !== "529") return a;
-    const valid =
-      a.linkedEventId != null &&
-      scenario.events.some((e) => e.id === a.linkedEventId);
-    if (valid) return a;
+    if (a.linkedEventId != null && collegeIds.has(a.linkedEventId)) return a;
+    const pick = free.shift() ?? colleges[0];
+    const linkedEventId = pick?.id ?? null;
+    if (linkedEventId === a.linkedEventId) return a;
     changed = true;
-    const pick = free.shift() ?? colleges[0]!;
-    return { ...a, linkedEventId: pick.id };
+    return { ...a, linkedEventId };
   });
   return changed ? { ...scenario, accounts } : scenario;
+}
+
+/**
+ * Re-fit everything that is measured against the plan horizon after age or
+ * plan-through age changes, so controls and the model always agree.
+ */
+export function normalizeTimeline(scenario: ScenarioInput): ScenarioInput {
+  const age = scenario.age;
+  const endAge = Math.max(scenario.endAge, age + 1);
+  const horizon = endAge - age;
+  const clamp = (n: number, lo: number, hi: number) =>
+    Math.max(lo, Math.min(hi, n));
+  return {
+    ...scenario,
+    endAge,
+    events: scenario.events.map((e) => {
+      const startYear = clamp(e.startYear, 0, horizon - 1);
+      const durationYears = clamp(e.durationYears, 1, horizon - startYear);
+      return startYear === e.startYear && durationYears === e.durationYears
+        ? e
+        : { ...e, startYear, durationYears };
+    }),
+    incomes: scenario.incomes.map((i) => {
+      const startAge = clamp(i.startAge, age, endAge);
+      const stop =
+        i.endAge == null ? null : clamp(i.endAge, startAge, endAge);
+      return startAge === i.startAge && stop === i.endAge
+        ? i
+        : { ...i, startAge, endAge: stop };
+    }),
+  };
+}
+
+/** Change the timeline in one step, keeping the rest of the plan consistent. */
+export function setTimeline(
+  scenario: ScenarioInput,
+  change: { age?: number; endAge?: number },
+): ScenarioInput {
+  return normalizeTimeline({
+    ...scenario,
+    age: change.age ?? scenario.age,
+    endAge: change.endAge ?? scenario.endAge,
+  });
 }
 
 /** Drop buckets the user never filled in before handing off to the planner. */
@@ -182,7 +246,7 @@ export function pruneEmptyAccounts(scenario: ScenarioInput): ScenarioInput {
 }
 
 export function finalizeStoryScenario(scenario: ScenarioInput): ScenarioInput {
-  return normalize529Links(pruneEmptyAccounts(scenario));
+  return normalize529Links(pruneEmptyAccounts(normalizeTimeline(scenario)));
 }
 
 export type IncomePreset = "social-security" | "pension" | "rental" | "other";
@@ -385,6 +449,9 @@ export function buildVerdict(
   const depletedRow = rows.find((r) => r.total < 1 && r.year > 0);
   const last = rows[rows.length - 1];
   const startTotal = scenario.accounts.reduce((s, a) => s + a.balance, 0);
+  const livingSavings = scenario.accounts
+    .filter((a) => a.kind !== "529")
+    .reduce((s, a) => s + a.balance, 0);
   const draws = rows.filter((r) => r.withdrawn > 0);
   const avgDrawToday =
     draws.length === 0
@@ -399,7 +466,7 @@ export function buildVerdict(
   );
   const spend =
     scenario.spendMode === "percent"
-      ? startTotal * scenario.withdrawPct
+      ? livingSavings * scenario.withdrawPct
       : scenario.annualSpend;
   return {
     depleted: depletedRow != null,
@@ -411,7 +478,7 @@ export function buildVerdict(
     startTotal,
     avgDrawToday,
     taxesToday,
-    yearsOfRunway: spend > 0 ? startTotal / spend : null,
+    yearsOfRunway: spend > 0 ? livingSavings / spend : null,
   };
 }
 
@@ -427,10 +494,10 @@ export function lifeEras(scenario: Pick<ScenarioInput, "age" | "endAge">): Story
   const all: StoryEra[] = [
     {
       id: "penalty-free",
-      label: "Penalty-free withdrawals",
+      label: "Penalty-free access",
       age: 59.5,
       detail:
-        "Before this, taking money out of a Traditional IRA or 401(k) costs an extra 10%.",
+        "Before this, taking money out of a Traditional IRA or 401(k) usually costs an extra 10%, with some exceptions. Withdrawals are still taxed as income.",
     },
     {
       id: "medicare",
@@ -440,10 +507,10 @@ export function lifeEras(scenario: Pick<ScenarioInput, "age" | "endAge">): Story
     },
     {
       id: "social-security",
-      label: "Full Social Security",
+      label: "Full retirement age",
       age: 67,
       detail:
-        "Full retirement age for anyone born in 1960 or later. Claiming earlier pays less.",
+        "Social Security full retirement age for anyone born in 1960 or later. Claiming earlier pays less.",
     },
     {
       id: "rmd",

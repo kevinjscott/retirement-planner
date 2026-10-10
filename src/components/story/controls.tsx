@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useId, type CSSProperties, type ReactNode } from "react";
+import { useId, useRef, type CSSProperties, type ReactNode } from "react";
 import {
   DeferredNumberInput,
   formatWithCommas,
@@ -176,19 +176,40 @@ export function Segmented<T extends string>({
   label: string;
 }) {
   const groupId = useId();
+  const refs = useRef<(HTMLButtonElement | null)[]>([]);
+  const selected = options.findIndex((o) => o.value === value);
+  const tabStop = selected >= 0 ? selected : 0;
+  const move = (from: number, step: number) => {
+    const to = (from + step + options.length) % options.length;
+    onChange(options[to]!.value);
+    refs.current[to]?.focus();
+  };
   return (
     <div className="vbg-story-segmented" role="radiogroup" aria-label={label}>
-      {options.map((o) => {
+      {options.map((o, i) => {
         const on = o.value === value;
         return (
           <button
             key={o.value}
+            ref={(el) => {
+              refs.current[i] = el;
+            }}
             type="button"
             role="radio"
             aria-checked={on}
+            tabIndex={i === tabStop ? 0 : -1}
             className="vbg-story-segment"
             data-on={on}
             onClick={() => onChange(o.value)}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+                e.preventDefault();
+                move(i, 1);
+              } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+                e.preventDefault();
+                move(i, -1);
+              }
+            }}
           >
             {on ? (
               <motion.span
