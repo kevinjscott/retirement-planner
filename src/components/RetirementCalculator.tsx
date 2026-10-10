@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
   useEffect,
   useId,
@@ -22,6 +23,7 @@ import { InteractiveChart } from "@/components/InteractiveChart";
 import { LiquidFromPicker } from "@/components/LiquidFromPicker";
 import { YearSliderPicker } from "@/components/YearSliderPicker";
 import { ScenarioImport } from "@/components/ScenarioImport";
+import { StoryFlow, type StoryMode } from "@/components/story/StoryFlow";
 import { VoiceMode } from "@/components/voice/VoiceMode";
 import { useScenarioHistory } from "@/hooks/useScenarioHistory";
 import {
@@ -70,6 +72,20 @@ import {
 } from "@/lib/us-taxes";
 
 const STORAGE_KEY = "retirement-scenarios:v2";
+
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  shown: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 140, damping: 22 },
+  },
+};
+
+const panelsVariants: Variants = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
 const CALENDAR_START = new Date().getFullYear();
 
 const DRAW_ORDER_HINT: Record<WithdrawOrder, string> = {
@@ -212,6 +228,17 @@ function NetAssetsSummary({
       ) : null}
     </div>
   );
+}
+
+function hasSavedScenario(): boolean {
+  try {
+    return (
+      localStorage.getItem(STORAGE_KEY) != null ||
+      localStorage.getItem("retirement-scenarios:v1") != null
+    );
+  } catch {
+    return true;
+  }
 }
 
 function loadScenario(): ScenarioInput {
@@ -386,23 +413,39 @@ export function RetirementCalculator() {
   const [hydrated, setHydrated] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [story, setStory] = useState<{ mode: StoryMode } | null>(null);
+  const [introPending, setIntroPending] = useState(false);
+  const [handoffNote, setHandoffNote] = useState(false);
   const resetTitleId = useId();
   const undoShortcut = isMacPlatform() ? "⌘Z" : "Ctrl+Z";
   const redoShortcut = isMacPlatform() ? "⌘⇧Z" : "Ctrl+Shift+Z";
 
   useEffect(() => {
+    const firstVisit = !hasSavedScenario();
     setScenario(loadScenario(), { history: "replace" });
+    if (firstVisit) {
+      setStory({ mode: "first" });
+      setIntroPending(true);
+    }
     setHydrated(true);
   }, [setScenario]);
 
   useEffect(() => {
     if (!hydrated) return;
+    // A first-time visitor hasn't chosen anything yet; don't save the example as theirs.
+    if (story?.mode === "first") return;
     const federalRate = resolveFederalRate(scenario);
     localStorage.setItem(
       STORAGE_KEY,
       JSON.stringify({ ...scenario, federalRate }),
     );
-  }, [scenario, hydrated]);
+  }, [scenario, hydrated, story]);
+
+  useEffect(() => {
+    if (!handoffNote) return;
+    const t = window.setTimeout(() => setHandoffNote(false), 14000);
+    return () => window.clearTimeout(t);
+  }, [handoffNote]);
 
   useEffect(() => {
     if (!resetOpen) return;
@@ -450,6 +493,21 @@ export function RetirementCalculator() {
     localStorage.removeItem("retirement-scenarios:v1");
     setScenario(DEFAULT_SCENARIO, { history: "replace" });
     setResetOpen(false);
+    setIntroPending(true);
+    setStory({ mode: "first" });
+  };
+
+  const finishStory = (next: ScenarioInput) => {
+    const mode = story?.mode;
+    setScenario(next, { history: mode === "first" ? "replace" : "push" });
+    setStory(null);
+    setHandoffNote(true);
+  };
+
+  const skipStory = () => {
+    const mode = story?.mode;
+    setStory(null);
+    if (mode === "first") setHandoffNote(true);
   };
 
   const patch = (partial: Partial<ScenarioInput>) =>
@@ -666,7 +724,8 @@ export function RetirementCalculator() {
   }
 
   return (
-    <div className="vbg-custom-screen">
+    <>
+    <div className="vbg-custom-screen" inert={story ? true : undefined}>
       <header className="vbg-header vbg-custom-header">
         <div className="vbg-masthead">
           <div className="vbg-identity">
@@ -703,6 +762,15 @@ export function RetirementCalculator() {
               onClick={() => void copyExport()}
             >
               {exportStatus ?? "Copy JSON"}
+            </button>
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="secondary"
+              title="Walk through your plan one question at a time"
+              onClick={() => setStory({ mode: "replay" })}
+            >
+              Guided setup
             </button>
             <ScenarioImport
               scenario={scenario}
@@ -744,7 +812,7 @@ export function RetirementCalculator() {
                 Reset scenario?
               </h2>
               <p className="vbg-meta">
-                Clears saved data and restores the default starter scenario.
+                Clears saved data and restarts the guided setup.
               </p>
             </div>
             <div className="vbg-custom-popover-actions">
@@ -769,8 +837,18 @@ export function RetirementCalculator() {
         </div>
       ) : null}
 
-      <div className="vbg-calculator vbg-custom-calc" data-layout="split">
-        <div className="vbg-result" data-priority="primary">
+      <motion.div
+        className="vbg-calculator vbg-custom-calc"
+        data-layout="split"
+        variants={panelsVariants}
+        initial={introPending ? "hidden" : false}
+        animate={introPending && story ? "hidden" : "shown"}
+      >
+        <motion.div
+          className="vbg-result"
+          data-priority="primary"
+          variants={panelVariants}
+        >
           <p className="vbg-result-label">
             {depleted
               ? "Funds run out"
@@ -786,9 +864,9 @@ export function RetirementCalculator() {
               ? `${depleted.year} of ${horizon} planned years`
               : (endingInsight?.detail ?? "")}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="vbg-calculator-inputs">
+        <motion.div className="vbg-calculator-inputs" variants={panelVariants}>
           <div className="vbg-custom-dense">
             <Field id="age" label="Age now" narrow voicePath="age">
               <UnitNumber
@@ -1334,9 +1412,9 @@ export function RetirementCalculator() {
             </div>
           </div>
 
-        </div>
+        </motion.div>
 
-        <div className="vbg-calculator-output">
+        <motion.div className="vbg-calculator-output" variants={panelVariants}>
           <div className="vbg-custom-insights">
             {insights
               .filter((insight) => insight.id !== "ending")
@@ -1442,8 +1520,72 @@ export function RetirementCalculator() {
               },
             ]}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
+
+    <AnimatePresence>
+      {story ? (
+        <StoryFlow
+          key="story"
+          mode={story.mode}
+          initialScenario={story.mode === "first" ? DEFAULT_SCENARIO : scenario}
+          importSlot={({ scenario: base, adopt }) => (
+            <ScenarioImport
+              scenario={base}
+              onApply={adopt}
+              renderTrigger={(open) => (
+                <button type="button" className="vbg-story-link" onClick={open}>
+                  Import from notes or a statement
+                </button>
+              )}
+            />
+          )}
+          onFinish={finishStory}
+          onSkip={skipStory}
+        />
+      ) : null}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {handoffNote && !story ? (
+        <motion.aside
+          key="note"
+          className="vbg-custom-handoff"
+          role="status"
+          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ type: "spring", stiffness: 220, damping: 24, delay: 0.7 }}
+        >
+          <p>
+            <strong>Your plan is live.</strong> Every answer is an editable field
+            here, and everything is saved in this browser.
+          </p>
+          <div className="vbg-custom-handoff-actions">
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="secondary"
+              onClick={() => {
+                setHandoffNote(false);
+                setStory({ mode: "replay" });
+              }}
+            >
+              Replay guided setup
+            </button>
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="ghost"
+              onClick={() => setHandoffNote(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </motion.aside>
+      ) : null}
+    </AnimatePresence>
+    </>
   );
 }

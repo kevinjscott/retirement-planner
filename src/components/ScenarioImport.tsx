@@ -10,6 +10,7 @@ import {
   type ChangeEvent,
   type ClipboardEvent,
   type DragEvent,
+  type ReactNode,
 } from "react";
 import { ThinkingOrb } from "thinking-orbs";
 import {
@@ -32,6 +33,8 @@ type PendingImage = {
 type Props = {
   scenario: ScenarioInput;
   onApply: (next: ScenarioInput) => void;
+  /** Replace the default masthead button (e.g. inside the guided setup). */
+  renderTrigger?: (open: () => void) => ReactNode;
 };
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -43,7 +46,7 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-export function ScenarioImport({ scenario, onApply }: Props) {
+export function ScenarioImport({ scenario, onApply, renderTrigger }: Props) {
   const titleId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
@@ -312,15 +315,19 @@ export function ScenarioImport({ scenario, onApply }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        className="vbg-button"
-        data-variant="secondary"
-        title="Import balances and assumptions from notes, screenshots, or PDF"
-        onClick={openModal}
-      >
-        Import
-      </button>
+      {renderTrigger ? (
+        renderTrigger(openModal)
+      ) : (
+        <button
+          type="button"
+          className="vbg-button"
+          data-variant="secondary"
+          title="Import balances and assumptions from notes, screenshots, or PDF"
+          onClick={openModal}
+        >
+          Import
+        </button>
+      )}
       {status && !open ? (
         <span className="vbg-meta vbg-custom-import-toast">{status}</span>
       ) : null}

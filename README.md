@@ -31,6 +31,7 @@ PDF import: browser renders pages to JPEGs (`pdfjs-dist` in `pdf-pages.ts`), the
 
 ## Features
 
+- **Guided setup**: first visit opens a narrative walkthrough (Framer Motion) instead of a dense form — age and horizon, lifestyle cost, savings by tax bucket, income, big expenses, then an animated result with live what-if levers. A persistent stage on the right redraws as each answer changes (lifeline → year-by-year bars → savings stack → balance curve). Skippable at any time; replay from **Guided setup** in the masthead (applies as one undoable change). `prefers-reduced-motion` is respected.
 - **Voice mode**: compact masthead toggle + polygon visualizer → live Gemini assistant that reads/writes scenario inputs and computed page results (insights, milestones, year taxes/balances) with focus-based deixis (focused field only; hover ignored)
 - **AI import**: paste notes, drop/paste screenshots, or upload a PDF (pages → images) — extract → confirm explanations → apply (`openai/gpt-5.6-luna` via AI Gateway)
 - **Current Holdings**: taxable / Roth / Traditional / 401(k) / 529 — each with name, balance, fund/index rate
