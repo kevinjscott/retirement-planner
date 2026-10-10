@@ -305,4 +305,13 @@ describe("integrity fixes", () => {
     };
     expect(normalizeTimeline(scenario).personalMilestones[0]!.yearOffset).toBe(10);
   });
+
+  test("duplicate 529 links are spread across college events", () => {
+    const c1 = { ...newStoryEvent("college", base), id: "c1" };
+    const c2 = { ...newStoryEvent("college", base), id: "c2" };
+    const a = { ...newAccount("529", base), balance: 1, linkedEventId: "c1" };
+    const b = { ...newAccount("529", base), balance: 1, linkedEventId: "c1" };
+    const out = normalize529Links({ ...base, events: [c1, c2], accounts: [a, b] });
+    expect(out.accounts.map((x) => x.linkedEventId).sort()).toEqual(["c1", "c2"]);
+  });
 });

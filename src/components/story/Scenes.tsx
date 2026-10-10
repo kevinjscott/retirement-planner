@@ -165,7 +165,7 @@ export function WelcomeScene({
       </Rise>
       <Rise>
         <p className="vbg-meta vbg-story-fineprint">
-          Your plan is saved in this browser. If you use import, the notes or files you add are sent to an AI service to be read.
+          Your answers stay in this browser and are saved when you finish. If you use import, the notes or files you add are sent to an AI service to be read.
         </p>
       </Rise>
     </SceneShell>
@@ -558,7 +558,11 @@ export function SavingsScene({
           of your {horizon} years before it earns anything.
         </Narration>
       ) : (
-        <Narration>Add savings outside a 529 to keep going.</Narration>
+        <Narration>
+          {potBalance(scenario, "education") > 0
+            ? "529 money is set aside for education, so it will not fund retirement. Add other savings, or continue to see that picture."
+            : "Add at least one account to keep going."}
+        </Narration>
       )}
     </SceneShell>
   );

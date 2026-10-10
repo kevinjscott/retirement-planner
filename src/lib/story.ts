@@ -171,23 +171,19 @@ export function applyRiskStyle(
 export function normalize529Links(scenario: ScenarioInput): ScenarioInput {
   const colleges = scenario.events.filter((e) => isCollegeEvent(e));
   const collegeIds = new Set(colleges.map((e) => e.id));
-  const taken = new Set(
-    scenario.accounts
-      .filter(
-        (a) =>
-          a.kind === "529" &&
-          a.linkedEventId != null &&
-          collegeIds.has(a.linkedEventId),
-      )
-      .map((a) => a.linkedEventId as string),
-  );
-  const free = colleges.filter((e) => !taken.has(e.id));
+  const claimed = new Set<string>();
+  const keeps = scenario.accounts.map((a) => {
+    if (a.kind !== "529") return true;
+    const id = a.linkedEventId;
+    if (id == null || !collegeIds.has(id) || claimed.has(id)) return false;
+    claimed.add(id);
+    return true;
+  });
+  const free = colleges.filter((e) => !claimed.has(e.id));
   let changed = false;
-  const accounts = scenario.accounts.map((a) => {
-    if (a.kind !== "529") return a;
-    if (a.linkedEventId != null && collegeIds.has(a.linkedEventId)) return a;
-    const pick = free.shift() ?? colleges[0];
-    const linkedEventId = pick?.id ?? null;
+  const accounts = scenario.accounts.map((a, i) => {
+    if (keeps[i]) return a;
+    const linkedEventId = (free.shift() ?? colleges[0])?.id ?? null;
     if (linkedEventId === a.linkedEventId) return a;
     changed = true;
     return { ...a, linkedEventId };

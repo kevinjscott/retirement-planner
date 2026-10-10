@@ -35,6 +35,7 @@ import {
   buildVerdict,
   buildYearBars,
   finalizeStoryScenario,
+  normalizeTimeline,
   potBalance,
   type Pot,
 } from "@/lib/story";
@@ -104,7 +105,9 @@ export function StoryFlow({
   onFinish: (scenario: ScenarioInput) => void;
   onSkip: () => void;
 }) {
-  const [draft, setDraft] = useState<ScenarioInput>(initialScenario);
+  const [draft, setDraft] = useState<ScenarioInput>(() =>
+    normalizeTimeline(initialScenario),
+  );
   const [sceneIndex, setSceneIndex] = useState(mode === "first" ? 0 : 1);
   const [dir, setDir] = useState(1);
   const [imported, setImported] = useState(false);
@@ -139,7 +142,7 @@ export function StoryFlow({
 
   const canContinue =
     scene !== "savings" ||
-    (["taxable", "pretax", "roth"] as const).some(
+    (["taxable", "pretax", "roth", "education"] as const).some(
       (p) => potBalance(draft, p) > 0,
     );
 
@@ -297,7 +300,7 @@ export function StoryFlow({
                       importSlot={importSlot({
                         scenario: mode === "replay" ? draft : BLANK_START_SCENARIO,
                         adopt: (n) => {
-                          setDraft(n);
+                          setDraft(normalizeTimeline(n));
                           setImported(true);
                           goTo(1);
                         },

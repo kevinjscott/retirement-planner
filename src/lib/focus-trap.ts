@@ -1,5 +1,5 @@
 const FOCUSABLE =
-  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), summary, [contenteditable]:not([contenteditable="false"]), [tabindex]:not([tabindex="-1"])';
 
 /** Keep Tab / Shift+Tab inside `container`. Returns true when it handled the key. */
 export function trapTab(e: KeyboardEvent, container: HTMLElement): boolean {
