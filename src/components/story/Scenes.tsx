@@ -30,6 +30,8 @@ import {
 } from "@/lib/projection";
 import {
   INCOME_PRESET_COPY,
+  INFLATION_HISTORY,
+  INFLATION_TARGET,
   POT_COPY,
   POT_ORDER,
   RISK_COPY,
@@ -270,7 +272,12 @@ export function YouScene({
 
 /* ------------------------------------------------------------------ */
 
-export function SpendScene({ scenario, update, bars }: SceneProps) {
+export function SpendScene({
+  scenario,
+  update,
+  bars,
+  calendarStartYear,
+}: SceneProps & { calendarStartYear: number }) {
   const last = bars[bars.length - 1];
   const state = getUsState(scenario.stateCode);
   const max = scenario.annualSpend > 300_000 ? niceCeil(scenario.annualSpend * 1.1) : 300_000;
@@ -315,7 +322,7 @@ export function SpendScene({ scenario, update, bars }: SceneProps) {
 
       <Rise className="vbg-story-sentence vbg-story-sentence-sm">
         <p>
-          Prices rise{" "}
+          Assume prices rise{" "}
           <Stepper
             label="Inflation"
             value={scenario.inflation}
@@ -325,13 +332,47 @@ export function SpendScene({ scenario, update, bars }: SceneProps) {
             display={fmtPct(scenario.inflation)}
             onChange={(inflation) => update((s) => ({ ...s, inflation }))}
           />{" "}
-          a year.
+          a year, aka inflation.
         </p>
+        <div className="vbg-story-history">
+          <p className="vbg-meta">
+            For reference, US inflation averaged about 3% a year over the long
+            run. Tap a period to try it.
+          </p>
+          <div className="vbg-story-history-list" role="group" aria-label="Historical inflation">
+            {INFLATION_HISTORY.map((h) => (
+              <button
+                key={h.id}
+                type="button"
+                className="vbg-story-history-item"
+                aria-pressed={Math.abs(scenario.inflation - h.rate) < 0.0005}
+                onClick={() => update((s) => ({ ...s, inflation: h.rate }))}
+              >
+                <strong>{fmtPct(h.rate)}</strong>
+                <span>{h.label}</span>
+                {h.note ? <span>{h.note}</span> : null}
+              </button>
+            ))}
+            <button
+              type="button"
+              className="vbg-story-history-item"
+              aria-pressed={Math.abs(scenario.inflation - INFLATION_TARGET) < 0.0005}
+              onClick={() => update((s) => ({ ...s, inflation: INFLATION_TARGET }))}
+            >
+              <strong>{fmtPct(INFLATION_TARGET)}</strong>
+              <span>Fed target</span>
+            </button>
+          </div>
+          <p className="vbg-story-history-source">
+            US CPI-U, annual averages, rounded. Past inflation doesn&apos;t
+            predict the future.
+          </p>
+        </div>
       </Rise>
 
       <Rise className="vbg-story-sentence vbg-story-sentence-sm">
         <p>
-          I live in{" "}
+          I&apos;ll spend retirement in{" "}
           <span className="vbg-story-select">
             <select
               aria-label="State"
@@ -361,11 +402,13 @@ export function SpendScene({ scenario, update, bars }: SceneProps) {
 
       {last ? (
         <Narration>
-          Inflation turns {money(scenario.annualSpend)} today into{" "}
+          The same lifestyle costs {money(scenario.annualSpend)} in {calendarStartYear}{" "}
+          and{" "}
           <strong>
             <AnimatedNumber value={last.living} format={money} />
           </strong>{" "}
-          a year by age {last.age}.
+          a year in {calendarStartYear + last.year}, at age {last.age}. Not a
+          bigger lifestyle, just more dollars for the same things.
         </Narration>
       ) : null}
     </SceneShell>

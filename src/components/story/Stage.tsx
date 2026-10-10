@@ -74,6 +74,7 @@ type StageProps = {
   exampleInflation: number;
   hoverEra: string | null;
   activePot: Pot | null;
+  calendarStartYear: number;
   onCurveDone: () => void;
 };
 
@@ -122,6 +123,7 @@ export function Stage(props: StageProps) {
                 width={width}
                 height={height}
                 bars={props.bars}
+                calendarStartYear={props.calendarStartYear}
                 showIncome={props.scene === "income" || props.scene === "costs"}
                 showEvents={props.scene === "costs"}
                 showToday={props.scene === "spend"}
@@ -375,6 +377,7 @@ function BarsLayer({
   width,
   height,
   bars,
+  calendarStartYear,
   showIncome,
   showEvents,
   showToday,
@@ -383,6 +386,7 @@ function BarsLayer({
   width: number;
   height: number;
   bars: YearBar[];
+  calendarStartYear: number;
   showIncome: boolean;
   showEvents: boolean;
   showToday: boolean;
@@ -452,9 +456,11 @@ function BarsLayer({
       <div className="vbg-story-readout" data-on={hovered != null}>
         {hovered && hoveredSeg ? (
           <>
-            <strong>Age {hovered.age}</strong>
+            <strong>
+              Age {hovered.age} · {calendarStartYear + hovered.year}
+            </strong>
             <span>
-              {compact(hoveredSeg.need)} needed
+              {compact(hoveredSeg.need)} needed in {calendarStartYear + hovered.year} dollars
               {showIncome && hoveredSeg.income > 0
                 ? ` · ${compact(Math.min(hoveredSeg.income, hoveredSeg.need))} from income`
                 : ""}
@@ -548,17 +554,19 @@ function BarsLayer({
         <>
           <BarLabel
             x={barX(0) + bw / 2}
-            y={base - scale(firstNeed) - 48}
+            y={base - scale(firstNeed) - 84}
             align="left"
-            caption={`Age ${first.age}`}
+            caption={`Age ${first.age} · ${calendarStartYear}`}
             value={compact(firstNeed)}
+            note={`in ${calendarStartYear} dollars (today)`}
           />
           <BarLabel
             x={barX(n - 1) + bw / 2}
-            y={base - scale(lastNeed) - 48}
+            y={base - scale(lastNeed) - 84}
             align="right"
-            caption={`Age ${last.age}`}
+            caption={`Age ${last.age} · ${calendarStartYear + last.year}`}
             value={compact(lastNeed)}
+            note={`in ${calendarStartYear + last.year} dollars`}
           />
         </>
       ) : null}
@@ -598,12 +606,14 @@ function BarLabel({
   align,
   caption,
   value,
+  note,
 }: {
   x: number;
   y: number;
   align: "left" | "right";
   caption: string;
   value: string;
+  note?: string;
 }) {
   return (
     <motion.div
@@ -614,6 +624,7 @@ function BarLabel({
       <div className="vbg-story-handle" data-align={align}>
         <span>{caption}</span>
         <strong>{value}</strong>
+        {note ? <span className="vbg-story-handle-note">{note}</span> : null}
       </div>
     </motion.div>
   );

@@ -293,7 +293,9 @@ export function StoryFlow({
                       onHoverEra={setHoverEra}
                     />
                   ) : null}
-                  {scene === "spend" ? <SpendScene {...sceneProps} /> : null}
+                  {scene === "spend" ? (
+                    <SpendScene {...sceneProps} calendarStartYear={CALENDAR_START} />
+                  ) : null}
                   {scene === "savings" ? (
                     <SavingsScene {...sceneProps} onActivePot={setActivePot} />
                   ) : null}
@@ -358,6 +360,7 @@ export function StoryFlow({
               exampleInflation={DEFAULT_SCENARIO.inflation}
               hoverEra={hoverEra}
               activePot={activePot}
+              calendarStartYear={CALENDAR_START}
               onCurveDone={() => setPlayed(true)}
             />
           </section>

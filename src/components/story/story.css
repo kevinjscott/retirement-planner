@@ -1025,6 +1025,12 @@
   letter-spacing: -0.02em;
 }
 
+.vbg-story-handle-note {
+  text-shadow: 0 0 3px var(--vbg-background-100, #fff), 0 0 3px var(--vbg-background-100, #fff);
+  font-size: 0.75rem;
+  color: var(--vbg-text-secondary);
+}
+
 .vbg-story-years {
   position: absolute;
   top: 20px;
@@ -1339,4 +1345,62 @@
   .vbg-story-facts {
     grid-template-columns: 1fr;
   }
+}
+
+/* ---------- inflation reference ---------- */
+
+.vbg-story-history {
+  display: flex;
+  flex-direction: column;
+  gap: var(--vbg-space-3);
+  padding-top: var(--vbg-space-3);
+}
+
+.vbg-story-history-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: 6px;
+}
+
+.vbg-story-history-item {
+  all: unset;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 8px 10px;
+  border: 1px solid var(--vbg-border-default);
+  border-radius: var(--vbg-radius);
+  cursor: pointer;
+  font-size: 0.75rem;
+  color: var(--vbg-text-secondary);
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.vbg-story-history-item strong {
+  font-size: 1rem;
+  font-weight: var(--vbg-weight-semibold, 600);
+  color: var(--vbg-text-primary);
+  letter-spacing: -0.01em;
+}
+
+.vbg-story-history-item:hover {
+  border-color: var(--vbg-gray-1000);
+}
+
+.vbg-story-history-item:focus-visible {
+  outline: 2px solid var(--vbg-gray-1000);
+  outline-offset: 2px;
+}
+
+.vbg-story-history-item[aria-pressed="true"] {
+  border-color: var(--vbg-gray-1000);
+  background: var(--vbg-gray-alpha-100);
+  box-shadow: inset 0 0 0 1px var(--vbg-gray-1000);
+}
+
+.vbg-story-history-source {
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--vbg-text-secondary);
 }

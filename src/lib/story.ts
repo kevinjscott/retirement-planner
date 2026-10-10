@@ -455,3 +455,19 @@ export function lifeEras(scenario: Pick<ScenarioInput, "age" | "endAge">): Story
   ];
   return all.filter((e) => e.age > scenario.age && e.age < scenario.endAge);
 }
+
+/**
+ * US CPI-U annual-average change, rounded. For reference only: past
+ * inflation does not predict future inflation.
+ */
+export const INFLATION_HISTORY: { id: string; label: string; rate: number; note: string }[] = [
+  { id: "1970s", label: "1970s", rate: 0.071, note: "Oil shocks" },
+  { id: "1980s", label: "1980s", rate: 0.056, note: "Peaked at 13.5% in 1980" },
+  { id: "1990s", label: "1990s", rate: 0.03, note: "" },
+  { id: "2000s", label: "2000s", rate: 0.026, note: "" },
+  { id: "2010s", label: "2010s", rate: 0.018, note: "Below the 2% target" },
+  { id: "2020-23", label: "2020 to 2023", rate: 0.045, note: "8.0% in 2022" },
+];
+
+/** Federal Reserve long-run goal, and a common planning default. */
+export const INFLATION_TARGET = 0.02;
