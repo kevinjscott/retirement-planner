@@ -692,6 +692,7 @@ function PotsLayer({
     amount: potBalance(scenario, pot),
   }));
   const total = pots.reduce((s, p) => s + p.amount, 0);
+  const retirementTotal = verdict.startTotal;
   const horizon = Math.max(1, scenario.endAge - scenario.age);
   const runway = Math.min(horizon, verdict.yearsOfRunway ?? 0);
   const covers = (verdict.yearsOfRunway ?? 0) >= horizon;
@@ -699,12 +700,20 @@ function PotsLayer({
   return (
     <div className="vbg-story-pots" style={{ width }}>
       <div className="vbg-story-pots-total">
-        <span className="vbg-story-pots-label">Saved today</span>
+        <span className="vbg-story-pots-label">
+          {verdict.educationTotal > 0 ? "Saved for retirement" : "Saved today"}
+        </span>
         <AnimatedNumber
-          value={total}
+          value={retirementTotal}
           format={(n) => fmtMoney(Math.round(n), true)}
           className="vbg-story-bignum"
         />
+        {verdict.educationTotal > 0 ? (
+          <span className="vbg-meta">
+            Plus {fmtMoney(Math.round(verdict.educationTotal), true)} set aside in
+            529s
+          </span>
+        ) : null}
       </div>
 
       <div className="vbg-story-stack" data-empty={total === 0}>
