@@ -231,10 +231,12 @@ export function YouScene({
         </p>
         <StorySlider
           label="Plan through age"
-          min={scenario.age + 1}
+          min={31}
           max={110}
           value={scenario.endAge}
-          onChange={(endAge) => update((s) => ({ ...s, endAge }))}
+          onChange={(endAge) =>
+            update((s) => ({ ...s, endAge: Math.max(endAge, s.age + 1) }))
+          }
         />
       </Rise>
       {eras.length > 0 ? (
