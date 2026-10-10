@@ -716,10 +716,12 @@ export function CostsScene({ scenario, update, rows }: SceneProps) {
     );
   const patchEvent = (id: string, partial: Partial<LifeEvent>) =>
     update((s) =>
-      normalizeTimeline({
-        ...s,
-        events: s.events.map((e) => (e.id === id ? { ...e, ...partial } : e)),
-      }),
+      normalize529Links(
+        normalizeTimeline({
+          ...s,
+          events: s.events.map((e) => (e.id === id ? { ...e, ...partial } : e)),
+        }),
+      ),
     );
   const totalCost = rows.reduce((s, r) => s + r.eventCost, 0);
   const college = rows.reduce((s, r) => s + r.collegeCost, 0);
@@ -764,15 +766,12 @@ export function CostsScene({ scenario, update, rows }: SceneProps) {
                   className="vbg-story-remove"
                   aria-label={`Remove ${ev.label || "expense"}`}
                   onClick={() =>
-                    update((s) => ({
-                      ...s,
-                      events: s.events.filter((e) => e.id !== ev.id),
-                      accounts: s.accounts.map((a) =>
-                        a.linkedEventId === ev.id
-                          ? { ...a, linkedEventId: null }
-                          : a,
-                      ),
-                    }))
+                    update((s) =>
+                      normalize529Links({
+                        ...s,
+                        events: s.events.filter((e) => e.id !== ev.id),
+                      }),
+                    )
                   }
                 >
                   ×

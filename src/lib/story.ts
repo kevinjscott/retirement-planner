@@ -80,16 +80,21 @@ export function setPotBalance(
   pot: Pot,
   amount: number,
 ): ScenarioInput {
+  return normalize529Links(setPotBalanceRaw(scenario, pot, amount));
+}
+
+function setPotBalanceRaw(
+  scenario: ScenarioInput,
+  pot: Pot,
+  amount: number,
+): ScenarioInput {
   const next = Math.max(0, Math.round(amount));
   const existing = potAccounts(scenario, pot);
   if (existing.length === 0) {
     if (next === 0) return scenario;
     const kind = POT_KINDS[pot][0]!;
     const account = { ...newAccount(kind, scenario), balance: next };
-    return normalize529Links({
-      ...scenario,
-      accounts: [...scenario.accounts, account],
-    });
+    return { ...scenario, accounts: [...scenario.accounts, account] };
   }
   const current = existing.reduce((s, a) => s + a.balance, 0);
   if (current <= 0) {

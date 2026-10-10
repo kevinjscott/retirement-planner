@@ -420,7 +420,7 @@ export function RetirementCalculator() {
   const [introPending, setIntroPending] = useState(false);
   const [handoffNote, setHandoffNote] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
-  const untouchedRef = useRef<ScenarioInput | null>(null);
+  const untouchedRef = useRef<string | null>(null);
   const resetTitleId = useId();
   const undoShortcut = isMacPlatform() ? "⌘Z" : "Ctrl+Z";
   const redoShortcut = isMacPlatform() ? "⌘⇧Z" : "Ctrl+Shift+Z";
@@ -440,7 +440,7 @@ export function RetirementCalculator() {
     // A first-time visitor hasn't chosen anything yet; don't save the example as theirs.
     if (story?.mode === "first") return;
     // Skipped the setup without changing anything: the example plan isn't theirs to save.
-    if (untouchedRef.current === scenario) return;
+    if (untouchedRef.current === JSON.stringify(scenario)) return;
     const federalRate = resolveFederalRate(scenario);
     let failed = false;
     try {
@@ -510,7 +510,7 @@ export function RetirementCalculator() {
     } catch {
       setSaveFailed(true);
     }
-    untouchedRef.current = DEFAULT_SCENARIO;
+    untouchedRef.current = JSON.stringify(DEFAULT_SCENARIO);
     setScenario(DEFAULT_SCENARIO, { history: "replace" });
     setResetOpen(false);
     setIntroPending(true);
@@ -528,7 +528,7 @@ export function RetirementCalculator() {
     const mode = story?.mode;
     setStory(null);
     if (mode === "first") {
-      untouchedRef.current = scenario;
+      untouchedRef.current = JSON.stringify(scenario);
       try {
         localStorage.setItem(STORY_SKIPPED_KEY, "1");
       } catch {
