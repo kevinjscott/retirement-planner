@@ -1,5 +1,6 @@
 "use client";
 
+import { AnimatePresence, motion, type Variants } from "framer-motion";
 import {
   useEffect,
   useId,
@@ -22,6 +23,7 @@ import { InteractiveChart } from "@/components/InteractiveChart";
 import { LiquidFromPicker } from "@/components/LiquidFromPicker";
 import { YearSliderPicker } from "@/components/YearSliderPicker";
 import { ScenarioImport } from "@/components/ScenarioImport";
+import { StoryFlow, type StoryMode } from "@/components/story/StoryFlow";
 import { VoiceMode } from "@/components/voice/VoiceMode";
 import { useScenarioHistory } from "@/hooks/useScenarioHistory";
 import {
@@ -70,6 +72,21 @@ import {
 } from "@/lib/us-taxes";
 
 const STORAGE_KEY = "retirement-scenarios:v2";
+const STORY_SKIPPED_KEY = "retirement-scenarios:story-skipped";
+
+const panelVariants: Variants = {
+  hidden: { opacity: 0, y: 24 },
+  shown: {
+    opacity: 1,
+    y: 0,
+    transition: { type: "spring", stiffness: 140, damping: 22 },
+  },
+};
+
+const panelsVariants: Variants = {
+  hidden: {},
+  shown: { transition: { staggerChildren: 0.12, delayChildren: 0.15 } },
+};
 const CALENDAR_START = new Date().getFullYear();
 
 const DRAW_ORDER_HINT: Record<WithdrawOrder, string> = {
@@ -212,6 +229,19 @@ function NetAssetsSummary({
       ) : null}
     </div>
   );
+}
+
+/** True when the guided setup has nothing to protect: no saved plan and no earlier skip. */
+function isFirstVisit(): boolean {
+  try {
+    return (
+      localStorage.getItem(STORAGE_KEY) == null &&
+      localStorage.getItem("retirement-scenarios:v1") == null &&
+      localStorage.getItem(STORY_SKIPPED_KEY) == null
+    );
+  } catch {
+    return true;
+  }
 }
 
 function loadScenario(): ScenarioInput {
@@ -386,23 +416,50 @@ export function RetirementCalculator() {
   const [hydrated, setHydrated] = useState(false);
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [resetOpen, setResetOpen] = useState(false);
+  const [story, setStory] = useState<{ mode: StoryMode } | null>(null);
+  const [introPending, setIntroPending] = useState(false);
+  const [handoffNote, setHandoffNote] = useState(false);
+  const [saveFailed, setSaveFailed] = useState(false);
+  const untouchedRef = useRef<string | null>(null);
   const resetTitleId = useId();
   const undoShortcut = isMacPlatform() ? "⌘Z" : "Ctrl+Z";
   const redoShortcut = isMacPlatform() ? "⌘⇧Z" : "Ctrl+Shift+Z";
 
   useEffect(() => {
+    const firstVisit = isFirstVisit();
     setScenario(loadScenario(), { history: "replace" });
+    if (firstVisit) {
+      setStory({ mode: "first" });
+      setIntroPending(true);
+    }
     setHydrated(true);
   }, [setScenario]);
 
   useEffect(() => {
     if (!hydrated) return;
+    // A first-time visitor hasn't chosen anything yet; don't save the example as theirs.
+    if (story?.mode === "first") return;
+    // Skipped the setup without changing anything: the example plan isn't theirs to save.
+    if (untouchedRef.current === JSON.stringify(scenario)) return;
     const federalRate = resolveFederalRate(scenario);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ ...scenario, federalRate }),
-    );
-  }, [scenario, hydrated]);
+    let failed = false;
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ ...scenario, federalRate }),
+      );
+    } catch {
+      failed = true;
+    }
+    const t = window.setTimeout(() => setSaveFailed(failed), 0);
+    return () => window.clearTimeout(t);
+  }, [scenario, hydrated, story]);
+
+  useEffect(() => {
+    if (!handoffNote) return;
+    const t = window.setTimeout(() => setHandoffNote(false), 14000);
+    return () => window.clearTimeout(t);
+  }, [handoffNote]);
 
   useEffect(() => {
     if (!resetOpen) return;
@@ -446,10 +503,39 @@ export function RetirementCalculator() {
   }, [undo, redo]);
 
   const confirmReset = () => {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem("retirement-scenarios:v1");
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem("retirement-scenarios:v1");
+      localStorage.removeItem(STORY_SKIPPED_KEY);
+    } catch {
+      setSaveFailed(true);
+    }
+    untouchedRef.current = JSON.stringify(DEFAULT_SCENARIO);
     setScenario(DEFAULT_SCENARIO, { history: "replace" });
     setResetOpen(false);
+    setIntroPending(true);
+    setStory({ mode: "first" });
+  };
+
+  const finishStory = (next: ScenarioInput) => {
+    const mode = story?.mode;
+    setScenario(next, { history: mode === "first" ? "replace" : "push" });
+    setStory(null);
+    setHandoffNote(true);
+  };
+
+  const skipStory = () => {
+    const mode = story?.mode;
+    setStory(null);
+    if (mode === "first") {
+      untouchedRef.current = JSON.stringify(scenario);
+      try {
+        localStorage.setItem(STORY_SKIPPED_KEY, "1");
+      } catch {
+        setSaveFailed(true);
+      }
+      setHandoffNote(true);
+    }
   };
 
   const patch = (partial: Partial<ScenarioInput>) =>
@@ -666,7 +752,8 @@ export function RetirementCalculator() {
   }
 
   return (
-    <div className="vbg-custom-screen">
+    <>
+    <div className="vbg-custom-screen" inert={story ? true : undefined}>
       <header className="vbg-header vbg-custom-header">
         <div className="vbg-masthead">
           <div className="vbg-identity">
@@ -704,6 +791,15 @@ export function RetirementCalculator() {
             >
               {exportStatus ?? "Copy JSON"}
             </button>
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="secondary"
+              title="Walk through your plan one question at a time"
+              onClick={() => setStory({ mode: "replay" })}
+            >
+              Guided setup
+            </button>
             <ScenarioImport
               scenario={scenario}
               onApply={(next) => setScenario(next, { history: "replace" })}
@@ -725,6 +821,14 @@ export function RetirementCalculator() {
         </div>
       </header>
 
+      {saveFailed ? (
+        <p className="vbg-meta vbg-custom-save-warning" role="status">
+          Couldn&apos;t save to this browser (storage may be blocked or full), so
+          your changes won&apos;t be kept after you close the tab. Use Copy JSON
+          to keep a copy.
+        </p>
+      ) : null}
+
       {resetOpen ? (
         <div className="vbg-custom-import-dialog-root">
           <button
@@ -744,7 +848,7 @@ export function RetirementCalculator() {
                 Reset scenario?
               </h2>
               <p className="vbg-meta">
-                Clears saved data and restores the default starter scenario.
+                Clears saved data and restarts the guided setup.
               </p>
             </div>
             <div className="vbg-custom-popover-actions">
@@ -769,8 +873,18 @@ export function RetirementCalculator() {
         </div>
       ) : null}
 
-      <div className="vbg-calculator vbg-custom-calc" data-layout="split">
-        <div className="vbg-result" data-priority="primary">
+      <motion.div
+        className="vbg-calculator vbg-custom-calc"
+        data-layout="split"
+        variants={panelsVariants}
+        initial={introPending ? "hidden" : false}
+        animate={introPending && story ? "hidden" : "shown"}
+      >
+        <motion.div
+          className="vbg-result"
+          data-priority="primary"
+          variants={panelVariants}
+        >
           <p className="vbg-result-label">
             {depleted
               ? "Funds run out"
@@ -786,9 +900,9 @@ export function RetirementCalculator() {
               ? `${depleted.year} of ${horizon} planned years`
               : (endingInsight?.detail ?? "")}
           </p>
-        </div>
+        </motion.div>
 
-        <div className="vbg-calculator-inputs">
+        <motion.div className="vbg-calculator-inputs" variants={panelVariants}>
           <div className="vbg-custom-dense">
             <Field id="age" label="Age now" narrow voicePath="age">
               <UnitNumber
@@ -1334,9 +1448,9 @@ export function RetirementCalculator() {
             </div>
           </div>
 
-        </div>
+        </motion.div>
 
-        <div className="vbg-calculator-output">
+        <motion.div className="vbg-calculator-output" variants={panelVariants}>
           <div className="vbg-custom-insights">
             {insights
               .filter((insight) => insight.id !== "ending")
@@ -1442,8 +1556,72 @@ export function RetirementCalculator() {
               },
             ]}
           />
-        </div>
-      </div>
+        </motion.div>
+      </motion.div>
     </div>
+
+    <AnimatePresence>
+      {story ? (
+        <StoryFlow
+          key="story"
+          mode={story.mode}
+          initialScenario={story.mode === "first" ? DEFAULT_SCENARIO : scenario}
+          importSlot={({ scenario: base, adopt }) => (
+            <ScenarioImport
+              scenario={base}
+              onApply={adopt}
+              renderTrigger={(open) => (
+                <button type="button" className="vbg-story-link" onClick={open}>
+                  Import from notes or a statement
+                </button>
+              )}
+            />
+          )}
+          onFinish={finishStory}
+          onSkip={skipStory}
+        />
+      ) : null}
+    </AnimatePresence>
+
+    <AnimatePresence>
+      {handoffNote && !story ? (
+        <motion.aside
+          key="note"
+          className="vbg-custom-handoff"
+          role="status"
+          initial={{ opacity: 0, y: 24, scale: 0.97 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: 12 }}
+          transition={{ type: "spring", stiffness: 220, damping: 24, delay: 0.7 }}
+        >
+          <p>
+            <strong>Your plan is live.</strong> Every answer is an editable field
+            here{saveFailed ? "." : ", and everything is saved in this browser."}
+          </p>
+          <div className="vbg-custom-handoff-actions">
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="secondary"
+              onClick={() => {
+                setHandoffNote(false);
+                setStory({ mode: "replay" });
+              }}
+            >
+              Replay guided setup
+            </button>
+            <button
+              type="button"
+              className="vbg-button"
+              data-variant="ghost"
+              onClick={() => setHandoffNote(false)}
+            >
+              Dismiss
+            </button>
+          </div>
+        </motion.aside>
+      ) : null}
+    </AnimatePresence>
+    </>
   );
 }

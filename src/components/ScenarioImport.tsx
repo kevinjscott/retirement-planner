@@ -10,6 +10,7 @@ import {
   type ChangeEvent,
   type ClipboardEvent,
   type DragEvent,
+  type ReactNode,
 } from "react";
 import { ThinkingOrb } from "thinking-orbs";
 import {
@@ -20,6 +21,7 @@ import {
   type ImportExtraction,
 } from "@/lib/scenario-import";
 import { dataUrlToBase64, pdfFileToImages } from "@/lib/pdf-pages";
+import { trapTab } from "@/lib/focus-trap";
 import type { ScenarioInput } from "@/lib/projection";
 
 type PendingImage = {
@@ -32,6 +34,8 @@ type PendingImage = {
 type Props = {
   scenario: ScenarioInput;
   onApply: (next: ScenarioInput) => void;
+  /** Replace the default masthead button (e.g. inside the guided setup). */
+  renderTrigger?: (open: () => void) => ReactNode;
 };
 
 function fileToDataUrl(file: File): Promise<string> {
@@ -43,9 +47,10 @@ function fileToDataUrl(file: File): Promise<string> {
   });
 }
 
-export function ScenarioImport({ scenario, onApply }: Props) {
+export function ScenarioImport({ scenario, onApply, renderTrigger }: Props) {
   const titleId = useId();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
   const [open, setOpen] = useState(false);
   const [text, setText] = useState("");
   const [images, setImages] = useState<PendingImage[]>([]);
@@ -105,7 +110,22 @@ export function ScenarioImport({ scenario, onApply }: Props) {
 
   useEffect(() => {
     if (!open) return;
+    const opener = document.activeElement;
+    dialogRef.current?.focus({ preventScroll: true });
+    return () => {
+      if (opener instanceof HTMLElement && opener.isConnected) {
+        opener.focus({ preventScroll: true });
+      }
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Tab" && dialogRef.current) {
+        trapTab(e, dialogRef.current);
+        return;
+      }
       if (e.key !== "Escape") return;
       e.preventDefault();
       closeModal();
@@ -312,15 +332,19 @@ export function ScenarioImport({ scenario, onApply }: Props) {
 
   return (
     <>
-      <button
-        type="button"
-        className="vbg-button"
-        data-variant="secondary"
-        title="Import balances and assumptions from notes, screenshots, or PDF"
-        onClick={openModal}
-      >
-        Import
-      </button>
+      {renderTrigger ? (
+        renderTrigger(openModal)
+      ) : (
+        <button
+          type="button"
+          className="vbg-button"
+          data-variant="secondary"
+          title="Import balances and assumptions from notes, screenshots, or PDF"
+          onClick={openModal}
+        >
+          Import
+        </button>
+      )}
       {status && !open ? (
         <span className="vbg-meta vbg-custom-import-toast">{status}</span>
       ) : null}
@@ -334,6 +358,8 @@ export function ScenarioImport({ scenario, onApply }: Props) {
             onClick={closeModal}
           />
           <div
+            ref={dialogRef}
+            tabIndex={-1}
             className="vbg-custom-import-dialog"
             role="dialog"
             aria-modal="true"
